@@ -1,17 +1,17 @@
 <p align="center"><br><img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" /></p>
-<h3 align="center">Code Scanner</h3>
-<p align="center"><strong><code>@capacitor-community/code-scanner</code></strong></p>
+<h3 align="center">Barcode Scanner</h3>
+<p align="center"><strong><code>@capacitor-community/barcode-scanner</code></strong></p>
 <p align="center">
   Capacitor community plugin for something awesome.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2020?style=flat-square" />
-  <a href="https://github.com/capacitor-community/code-scanner/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/capacitor-community/code-scanner/CI?style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@capacitor-community/code-scanner"><img src="https://img.shields.io/npm/l/@capacitor-community/code-scanner?style=flat-square" /></a>
+  <a href="https://github.com/capacitor-community/barcode-scanner/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/capacitor-community/barcode-scanner/CI?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/l/@capacitor-community/barcode-scanner?style=flat-square" /></a>
 <br>
-  <a href="https://www.npmjs.com/package/@capacitor-community/code-scanner"><img src="https://img.shields.io/npm/dw/@capacitor-community/code-scanner?style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@capacitor-community/code-scanner"><img src="https://img.shields.io/npm/v/@capacitor-community/code-scanner?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/dw/@capacitor-community/barcode-scanner?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/v/@capacitor-community/barcode-scanner?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 <a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-0-orange?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -26,7 +26,7 @@
 ## Installation
 
 ```bash
-npm install git+https://github.com/DutchConcepts/capacitor-code-scanner.git#v1.0.0-alpha.1
+npm install git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git#v1.0.0-alpha.2
 npx cap sync
 ```
 
@@ -39,7 +39,7 @@ On iOS, no further steps are needed.
 On Android, register the plugin in your main activity:
 
 ```java
-import com.dutchconcepts.capacitor.codescanner.CodeScanner;
+import com.dutchconcepts.capacitor.barcodescanner.BarcodeScanner;
 
 public class MainActivity extends BridgeActivity {
 
@@ -54,7 +54,7 @@ public class MainActivity extends BridgeActivity {
           {
             // Additional plugins you've installed go here
             // Ex: add(TotallyAwesomePlugin.class);
-            add(CodeScanner.class);
+            add(BarcodeScanner.class);
           }
         }
       );
@@ -79,20 +79,20 @@ This can be done by either adding it to the Source Code directly or by using Xco
 ```diff
 <dict>
 +  <key>NSCameraUsageDescription</key>
-+  <string>To be able to scan QR-codes</string>
++  <string>To be able to scan barcodes</string>
 </dict>
 ```
 
-_NOTE:_ "To be able to scan QR-codes" can be substituted for anything you like.
+_NOTE:_ "To be able to scan barcodes" can be substituted for anything you like.
 
 **Adding it by using Xcode Property List inspector**
 
 1. Open up the Info.plist **in Xcode** (right-click > Open As > Property List)
 2. Next to "Information Property List" click on the tiny `+` button.
 3. Under `key`, type "Privacy - Camera Usage Description"
-4. Under `value`, type "To be able to scan QR-codes"
+4. Under `value`, type "To be able to scan barcodes"
 
-_NOTE:_ "To be able to scan QR-codes" can be substituted for anything you like.
+_NOTE:_ "To be able to scan barcodes" can be substituted for anything you like.
 
 More info here: https://developer.apple.com/documentation/bundleresources/information_property_list/nscamerausagedescription
 
@@ -120,17 +120,17 @@ Within your `AndroidManifest.xml` file, change the following:
 
 ## Usage
 
-Scanning a (QR) code can be as simple as:
+Scanning a (QR) barcode can be as simple as:
 
 ```js
 import { Plugins } from '@capacitor/core';
 
 const startScan = async () => {
-  const { CodeScanner } = Plugins;
+  const { BarcodeScanner } = Plugins;
 
-  CodeScanner.hideBackground(); // make background of WebView transparent
+  BarcodeScanner.hideBackground(); // make background of WebView transparent
 
-  const result = await CodeScanner.startScan(); // start scanning and wait for a result
+  const result = await BarcodeScanner.startScan(); // start scanning and wait for a result
 
   // if the result has content
   if (result.hasContent) {
@@ -153,9 +153,9 @@ After `startScan()` is resolved, the Scanner View will be automatically destroye
 import { Plugins } from '@capacitor/core';
 
 const stopScan = () => {
-  const { CodeScanner } = Plugins;
-  CodeScanner.showBackground();
-  CodeScanner.stopScan();
+  const { BarcodeScanner } = Plugins;
+  BarcodeScanner.showBackground();
+  BarcodeScanner.stopScan();
 };
 ```
 
@@ -170,9 +170,9 @@ import { Plugins } from '@capacitor/core';
 export default {
   methods: {
     stopScan() {
-      const { CodeScanner } = Plugins;
-      CodeScanner.showBackground();
-      CodeScanner.stopScan();
+      const { BarcodeScanner } = Plugins;
+      BarcodeScanner.showBackground();
+      BarcodeScanner.stopScan();
     },
   },
 
@@ -197,29 +197,29 @@ For example:
 import { Plugins } from '@capacitor/core';
 
 const prepare = () => {
-  const { CodeScanner } = Plugins;
-  CodeScanner.prepare();
+  const { BarcodeScanner } = Plugins;
+  BarcodeScanner.prepare();
 };
 
 const startScan = async () => {
-  const { CodeScanner } = Plugins;
-  CodeScanner.hideBackground();
-  const result = await CodeScanner.startScan();
+  const { BarcodeScanner } = Plugins;
+  BarcodeScanner.hideBackground();
+  const result = await BarcodeScanner.startScan();
   if (result.hasContent) {
     console.log(result.content);
   }
 };
 
 const stopScan = () => {
-  const { CodeScanner } = Plugins;
-  CodeScanner.showBackground();
-  CodeScanner.stopScan();
+  const { BarcodeScanner } = Plugins;
+  BarcodeScanner.showBackground();
+  BarcodeScanner.stopScan();
 };
 
 const askUser = () => {
   prepare();
 
-  const c = confirm('Do you want to scan a QR-code?');
+  const c = confirm('Do you want to scan a barcode?');
 
   if (c) {
     startScan();
@@ -235,16 +235,16 @@ This is fully optional and would work the same as:
 
 ```js
 const startScan = async () => {
-  const { CodeScanner } = Plugins;
-  CodeScanner.hideBackground();
-  const result = await CodeScanner.startScan();
+  const { BarcodeScanner } = Plugins;
+  BarcodeScanner.hideBackground();
+  const result = await BarcodeScanner.startScan();
   if (result.hasContent) {
     console.log(result.content);
   }
 };
 
 const askUser = () => {
-  const c = confirm('Do you want to scan a QR-code?');
+  const c = confirm('Do you want to scan a barcode?');
 
   if (c) {
     startScan();
@@ -267,4 +267,4 @@ A non-exhaustive list of todos:
 - Support for switching between cameras
 - Support for toggling the flashlight
 - Support for web
-- Support for different types of codes (it now only support 'normal' or inverted QR-codes)
+- Support for different types of barcodes (it now only support 'normal' or inverted QR-codes)

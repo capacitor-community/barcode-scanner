@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.dutchconcepts.capacitor.codescanner"
+    package="com.dutchconcepts.capacitor.barcodescanner"
     android:hardwareAccelerated="true">
 
     <uses-feature android:name="android.hardware.camera"

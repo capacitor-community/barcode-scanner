@@ -1,4 +1,4 @@
-package com.dutchconcepts.capacitor.codescanner;
+package com.dutchconcepts.capacitor.barcodescanner;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NativePlugin
-public class CodeScanner extends Plugin implements BarcodeCallback {
+public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private BarcodeView mBarcodeView;
 

@@ -2,8 +2,8 @@ import Capacitor
 import Foundation
 import AVFoundation
 
-@objc(CodeScanner)
-public class CodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
+@objc(BarcodeScanner)
+public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     class CameraView: UIView {
         var videoPreviewLayer:AVCaptureVideoPreviewLayer?

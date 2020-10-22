@@ -1,10 +1,10 @@
 declare module '@capacitor/core' {
   interface PluginRegistry {
-    CodeScannerPlugin: CodeScannerPluginPlugin;
+    BarcodeScannerPlugin: BarcodeScannerPluginPlugin;
   }
 }
 
-export interface CodeScannerPluginPlugin {
+export interface BarcodeScannerPluginPlugin {
   prepare(): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;

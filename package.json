@@ -1,7 +1,7 @@
 {
-  "name": "capacitor-code-scanner",
+  "name": "capacitor-barcode-scanner",
   "version": "0.0.1",
-  "description": "A fast and efficient (QR) code scanner for Capacitor",
+  "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -40,7 +40,7 @@
     "dist/",
     "ios/",
     "android/",
-    "CapacitorCodeScanner.podspec"
+    "CapacitorBarcodeScanner.podspec"
   ],
   "keywords": [
     "capacitor",
@@ -64,9 +64,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/DutchConcepts/capacitor-code-scanner"
+    "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner"
   },
   "bugs": {
-    "url": "https://github.com/DutchConcepts/capacitor-code-scanner/issues"
+    "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner/issues"
   }
 }

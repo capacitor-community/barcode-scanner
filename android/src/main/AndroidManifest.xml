@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.dutchconcepts.capacitor.codescanner"
+    android:hardwareAccelerated="true">
+
+    <uses-feature android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+</manifest>

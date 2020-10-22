@@ -161,7 +161,7 @@ const stopScan = () => {
 
 It is also important to think about cases where a users hits some sort of a back button (either hardware or software). It is advised to call `stopScan()` in these types of situations as well.
 
-In Vue.js you could do something like in a specific view where you use the scanner:
+In Vue.js you could do something like this in a specific view where you use the scanner:
 
 ```vue
 <script>

@@ -34,7 +34,7 @@ On **Android** this library uses [`zxing-android-embedded`](https://github.com/j
 ## Installation
 
 ```bash
-npm install git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git#v1.0.0-alpha.2
+npm install git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git#v1.0.0-alpha.4
 npx cap sync
 ```
 

@@ -23,6 +23,14 @@
 | ---------- | ------------------------------------- | ------ |
 | tafelnl    | [tafelnl](https://github.com/tafelnl) |        |
 
+## About
+
+### Supported barcodes
+
+On **iOS** this library makes use of Apple's own `AVFoundation`. This means **[this list of barcodes](https://developer.apple.com/documentation/avfoundation/avmetadatamachinereadablecodeobject/machine-readable_object_types)** should be supported.
+
+On **Android** this library uses [`zxing-android-embedded`](https://github.com/journeyapps/zxing-android-embedded) which uses [`zxing`](https://github.com/zxing/zxing) under the hood. That means **[this list of barcodes](https://github.com/zxing/zxing/#supported-formats)** is supported.
+
 ## Installation
 
 ```bash
@@ -267,4 +275,3 @@ A non-exhaustive list of todos:
 - Support for switching between cameras
 - Support for toggling the flashlight
 - Support for web
-- Support for different types of barcodes (it now only support 'normal' or inverted QR-codes)

@@ -1,5 +1,8 @@
 import { WebPlugin } from '@capacitor/core';
-import { BarcodeScannerPlugin } from './definitions';
+import {
+  BarcodeScannerPlugin,
+  ScanResult,
+} from './definitions';
 
 export class BarcodeScannerWeb
   extends WebPlugin
@@ -9,6 +12,26 @@ export class BarcodeScannerWeb
       name: 'BarcodeScanner',
       platforms: ['web'],
     });
+  }
+
+  async prepare(): Promise<void> {
+    throw new Error('method not available in web');
+  }
+
+  async hideBackground(): Promise<void> {
+    throw new Error('method not available in web');
+  }
+
+  async showBackground(): Promise<void> {
+    throw new Error('method not available in web');
+  }
+
+  async startScan(): Promise<ScanResult> {
+    throw new Error('method not available in web');
+  }
+
+  async stopScan(): Promise<void> {
+    throw new Error('method not available in web');
   }
 }
 

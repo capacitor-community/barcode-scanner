@@ -8,6 +8,11 @@ export interface BarcodeScannerPlugin {
   prepare(): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
-  startScan(): Promise<{ hasContent: boolean; content: string }>;
+  startScan(): Promise<ScanResult>;
   stopScan(): Promise<void>;
+}
+
+export interface ScanResult {
+  hasContent: boolean;
+  content?: string;
 }

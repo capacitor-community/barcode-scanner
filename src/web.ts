@@ -1,20 +1,20 @@
 import { WebPlugin } from '@capacitor/core';
-import { BarcodeScannerPluginPlugin } from './definitions';
+import { BarcodeScannerPlugin } from './definitions';
 
-export class BarcodeScannerPluginWeb
+export class BarcodeScannerWeb
   extends WebPlugin
-  implements BarcodeScannerPluginPlugin {
+  implements BarcodeScannerPlugin {
   constructor() {
     super({
-      name: 'BarcodeScannerPlugin',
+      name: 'BarcodeScanner',
       platforms: ['web'],
     });
   }
 }
 
-const BarcodeScannerPlugin = new BarcodeScannerPluginWeb();
+const BarcodeScanner = new BarcodeScannerWeb();
 
-export { BarcodeScannerPlugin };
+export { BarcodeScanner };
 
 import { registerWebPlugin } from '@capacitor/core';
-registerWebPlugin(BarcodeScannerPlugin);
+registerWebPlugin(BarcodeScanner);

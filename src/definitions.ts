@@ -10,9 +10,24 @@ export interface BarcodeScannerPlugin {
   showBackground(): Promise<void>;
   startScan(): Promise<ScanResult>;
   stopScan(): Promise<void>;
+  checkPermission(
+    options: CheckPermissionOptions,
+  ): Promise<CheckPermissionResult>;
+  openAppSettings(): Promise<void>;
 }
 
 export interface ScanResult {
   hasContent: boolean;
   content?: string;
+}
+
+export interface CheckPermissionOptions {
+  force?: boolean;
+}
+
+export interface CheckPermissionResult {
+  granted?: boolean;
+  denied?: boolean;
+  asked?: boolean;
+  neverAsked?: boolean;
 }

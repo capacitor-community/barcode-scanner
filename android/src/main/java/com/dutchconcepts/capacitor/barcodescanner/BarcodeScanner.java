@@ -3,11 +3,14 @@ package com.dutchconcepts.capacitor.barcodescanner;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -383,5 +386,15 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         Boolean force = call.getBoolean("force", false);
 
         _checkPermission(call, force);
+    }
+
+    private static final int RESULT_CODE = 8309;
+
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getAppId(), null));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivityForResult(call, intent, RESULT_CODE);
+        call.resolve();
     }
 }

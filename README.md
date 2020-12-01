@@ -328,7 +328,7 @@ const didUserGrantPermission = async () => {
   // so request it
   const statusRequest = await BarcodeScanner.checkPermission({ force: true });
 
-  if (status.asked) {
+  if (statusRequest.asked) {
     // system requested the user for permission during this call
     // only possible when force set to true
   }

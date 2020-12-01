@@ -340,4 +340,18 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
     }
 
+    @objc func openAppSettings(_ call: CAPPluginCall) {
+      guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+          return
+      }
+
+      DispatchQueue.main.async {
+          if UIApplication.shared.canOpenURL(settingsUrl) {
+              UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
+                  call.resolve()
+              })
+          }
+      }
+    }
+
 }

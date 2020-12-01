@@ -30,4 +30,6 @@ export interface CheckPermissionResult {
   denied?: boolean;
   asked?: boolean;
   neverAsked?: boolean;
+  restricted?: boolean; // ios only
+  unknown?: boolean; // ios only
 }

@@ -304,4 +304,40 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         call.resolve()
     }
 
+    @objc func checkPermission(_ call: CAPPluginCall) {
+        let force = call.getBool("force") ?? false
+
+        var savedReturnObject = PluginResultData()
+
+        DispatchQueue.main.async {
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+                case .authorized:
+                    savedReturnObject["granted"] = true
+                case .denied:
+                    savedReturnObject["denied"] = true
+                case .notDetermined:
+                    savedReturnObject["neverAsked"] = true
+                case .restricted:
+                    savedReturnObject["restricted"] = true
+                @unknown default:
+                    savedReturnObject["unknown"] = true
+            }
+
+            if (force && savedReturnObject["neverAsked"] != nil) {
+                savedReturnObject["asked"] = true
+
+                AVCaptureDevice.requestAccess(for: .video) { (authorized) in
+                    if (authorized) {
+                        savedReturnObject["granted"] = true
+                    } else {
+                        savedReturnObject["denied"] = true
+                    }
+                    call.resolve(savedReturnObject)
+                }
+            } else {
+                call.resolve(savedReturnObject)
+            }
+        }
+    }
+
 }

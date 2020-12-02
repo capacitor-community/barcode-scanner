@@ -17,6 +17,15 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
+## Table of Contents
+
+- [Maintainers](#maintainers)
+- [About](#about)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+
 ## Maintainers
 
 | Maintainer | GitHub                                | Social |

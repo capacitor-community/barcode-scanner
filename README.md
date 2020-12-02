@@ -368,6 +368,16 @@ const checkPermission = async () => {
 };
 ```
 
+## Troubleshooting
+
+1. I have a `Error: Plugin BarcodeScanner does not respond to method call` error message on iOS
+
+In Xcode click on `Product` > `Clean Build Folder` and try to build again.
+
+2. I have a `Cannot resolve symbol BarcodeScanner` error message in Android Studio
+
+In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
+
 ## TODO
 
 A non-exhaustive list of todos:

@@ -17,6 +17,15 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
+## Table of Contents
+
+- [Maintainers](#maintainers)
+- [About](#about)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+
 ## Maintainers
 
 | Maintainer | GitHub                                | Social |
@@ -266,7 +275,117 @@ The latter will just appear a little slower to the user.
 
 ### Permissions
 
-This plugin does not handle permissions (yet). Your app will not crash when you call this API without having the right permission granted. But it will not be able to start up the camera. So you will have to take care of permissions yourself.
+This plugin does not automatically handle permissions. But the plugin _does_ have a utility method to check and request the permission. You will have to request the permission from JavaScript. A simple example follows:
+
+```js
+const checkPermission = async () => {
+  const { BarcodeScanner } = Plugins;
+
+  // check or request permission
+  const status = await BarcodeScanner.checkPermission({ force: true });
+
+  if (status.granted) {
+    // the user granted permission
+    return true;
+  }
+
+  return false;
+};
+```
+
+A more detailed and more UX-optimized example:
+
+```js
+const didUserGrantPermission = async () => {
+  const { BarcodeScanner } = Plugins;
+  // check if user already granted permission
+  const status = await BarcodeScanner.checkPermission({ force: false });
+
+  if (status.granted) {
+    // user granted permission
+    return true;
+  }
+
+  if (status.denied) {
+    // user denied permission
+    return false;
+  }
+
+  if (status.asked) {
+    // system requested the user for permission during this call
+    // only possible when force set to true
+  }
+
+  if (status.neverAsked) {
+    // user has not been requested this permission before
+    // it is advised to show the user some sort of prompt
+    // this way you will not waste your only chance to ask for the permission
+    const c = confirm(
+      'We need your permission to use your camera to be able to scan barcodes',
+    );
+    if (!c) {
+      return false;
+    }
+  }
+
+  if (status.restricted || status.unknown) {
+    // ios only
+    // probably means the permission has been denied
+    return false;
+  }
+
+  // user has not denied permission
+  // but the user also has not yet granted the permission
+  // so request it
+  const statusRequest = await BarcodeScanner.checkPermission({ force: true });
+
+  if (statusRequest.asked) {
+    // system requested the user for permission during this call
+    // only possible when force set to true
+  }
+
+  if (statusRequest.granted) {
+    // the user did grant the permission now
+    return true;
+  }
+
+  // user did not grant the permission, so he must have declined the request
+  return false;
+};
+
+checkPermission();
+```
+
+If a user denied the permission for good, `status.denied` will be set to true. On Android this will happen only when the user checks the box `never ask again`. To get the permission anyway you will have to redirect the user to the settings of the app. This can be done simply be doing the following:
+
+```js
+const checkPermission = async () => {
+  const { BarcodeScanner } = Plugins;
+
+  const status = await BarcodeScanner.checkPermission();
+
+  if (status.denied) {
+    // the user denied permission for good
+    // redirect user to app settings if they want to grant it anyway
+    const c = confirm(
+      'If you want to grant permission for using your camera, enable it in the app settings.',
+    );
+    if (c) {
+      BarcodeScanner.openAppSettings();
+    }
+  }
+};
+```
+
+## Troubleshooting
+
+1. I have a `Error: Plugin BarcodeScanner does not respond to method call` error message on iOS
+
+In Xcode click on `Product` > `Clean Build Folder` and try to build again.
+
+2. I have a `Cannot resolve symbol BarcodeScanner` error message in Android Studio
+
+In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
 
 ## TODO
 

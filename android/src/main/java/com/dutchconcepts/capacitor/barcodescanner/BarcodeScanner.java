@@ -1,9 +1,17 @@
 package com.dutchconcepts.capacitor.barcodescanner;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.Manifest;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.getcapacitor.JSObject;
@@ -11,17 +19,14 @@ import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
 import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
-import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.journeyapps.barcodescanner.camera.CameraSettings;
-import java.util.ArrayList;
 import java.util.List;
 
-@NativePlugin
+@NativePlugin(permissionRequestCode = BarcodeScanner.REQUEST_CODE)
 public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private BarcodeView mBarcodeView;
@@ -128,8 +133,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         if (!didRunCameraPrepare) {
             if (hasCamera()) {
                 if (!hasPermission(Manifest.permission.CAMERA)) {
-                    // @TODO()
-                    // requestPermission()
+                    Log.d("scanner", "No permission to use camera. Did you request it yet?");
                 } else {
                     shouldRunScan = true;
                     prepare();
@@ -245,6 +249,152 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     @PluginMethod
     public void stopScan(PluginCall call) {
         destroy();
+        call.resolve();
+    }
+
+    static final int REQUEST_CODE = 57351;
+
+    private static final String TAG_PERMISSION = "permission";
+
+    private static final String GRANTED = "granted";
+    private static final String DENIED = "denied";
+    private static final String ASKED = "asked";
+    private static final String NEVER_ASKED = "neverAsked";
+
+    private static final String PERMISSION_NAME = Manifest.permission.CAMERA;
+
+    private PluginCall savedCall;
+    private JSObject savedReturnObject;
+
+    void _checkPermission(PluginCall call, boolean force) {
+        this.savedReturnObject = new JSObject();
+
+        if (hasPermission(PERMISSION_NAME)) {
+            // permission GRANTED
+            this.savedReturnObject.put(GRANTED, true);
+        } else {
+            // permission NOT YET GRANTED
+
+            // check if asked before
+            boolean neverAsked = isPermissionFirstTimeAsking(PERMISSION_NAME);
+            if (neverAsked) {
+                this.savedReturnObject.put(NEVER_ASKED, true);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // from version Android M on,
+                // on runtime,
+                // each permission can be temporarily denied,
+                // or be denied forever
+                if (neverAsked || getActivity().shouldShowRequestPermissionRationale(PERMISSION_NAME)) {
+                    // permission never asked before
+                    // OR
+                    // permission DENIED, BUT not for always
+                    // So
+                    // can be asked (again)
+                    if (force) {
+                        // request permission
+                        // also set this.savedCall = call
+                        // so a callback can be made from the handleRequestPermissionsResult
+                        pluginRequestPermission(PERMISSION_NAME, REQUEST_CODE);
+                        this.savedCall = call;
+                        return;
+                    }
+                } else {
+                    // permission DENIED
+                    // user ALSO checked "NEVER ASK AGAIN"
+                    this.savedReturnObject.put(DENIED, true);
+                }
+            } else {
+                // below android M
+                // no runtime permissions exist
+                // so always
+                // permission GRANTED
+                this.savedReturnObject.put(GRANTED, true);
+            }
+        }
+        call.resolve(this.savedReturnObject);
+    }
+
+    private static String PREFS_PERMISSION_FIRST_TIME_ASKING = "PREFS_PERMISSION_FIRST_TIME_ASKING";
+
+    private void setPermissionFirstTimeAsking(String permission, boolean isFirstTime) {
+        SharedPreferences sharedPreference = getActivity().getSharedPreferences(PREFS_PERMISSION_FIRST_TIME_ASKING, MODE_PRIVATE);
+        sharedPreference.edit().putBoolean(permission, isFirstTime).apply();
+    }
+
+    private boolean isPermissionFirstTimeAsking(String permission) {
+        return getActivity().getSharedPreferences(PREFS_PERMISSION_FIRST_TIME_ASKING, MODE_PRIVATE).getBoolean(permission, true);
+    }
+
+    @Override
+    protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (this.savedCall == null || this.savedReturnObject == null || permissions.length <= 0) {
+            // No stored plugin call for permissions request result
+            return;
+        }
+        String permission = permissions[0];
+
+        // the user was apparently requested this permission
+        // update the preferences to reflect this
+        setPermissionFirstTimeAsking(permission, false);
+
+        boolean granted = false;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            granted = true;
+        }
+
+        // indicate that the user has been asked to accept this permission
+        this.savedReturnObject.put(ASKED, true);
+
+        if (granted) {
+            // permission GRANTED
+            Log.d(TAG_PERMISSION, "Asked. Granted");
+            this.savedReturnObject.put(GRANTED, true);
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (getActivity().shouldShowRequestPermissionRationale(permission)) {
+                    // permission DENIED
+                    // BUT not for always
+                    Log.d(TAG_PERMISSION, "Asked. Denied For Now");
+                } else {
+                    // permission DENIED
+                    // user ALSO checked "NEVER ASK AGAIN"
+                    Log.d(TAG_PERMISSION, "Asked. Denied");
+                    this.savedReturnObject.put(DENIED, true);
+                }
+            } else {
+                // below android M
+                // no runtime permissions exist
+                // so always
+                // permission GRANTED
+                Log.d(TAG_PERMISSION, "Asked. Granted");
+                this.savedReturnObject.put(GRANTED, true);
+            }
+        }
+        // resolve saved call
+        this.savedCall.resolve(this.savedReturnObject);
+        // release saved vars
+        this.savedCall = null;
+        this.savedReturnObject = null;
+    }
+
+    @PluginMethod
+    public void checkPermission(PluginCall call) {
+        Boolean force = call.getBoolean("force", false);
+
+        _checkPermission(call, force);
+    }
+
+    private static final int RESULT_CODE = 8309;
+
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getAppId(), null));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivityForResult(call, intent, RESULT_CODE);
         call.resolve();
     }
 }

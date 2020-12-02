@@ -270,6 +270,8 @@ This plugin does not automatically handle permissions. But the plugin _does_ hav
 
 ```js
 const checkPermission = async () => {
+  const { BarcodeScanner } = Plugins;
+
   // check or request permission
   const status = await BarcodeScanner.checkPermission({ force: true });
 
@@ -343,6 +345,27 @@ const didUserGrantPermission = async () => {
 };
 
 checkPermission();
+```
+
+If a user denied the permission for good, `status.denied` will be set to true. On Android this will happen only when the user checks the box `never ask again`. To get the permission anyway you will have to redirect the user to the settings of the app. This can be done simply be doing the following:
+
+```js
+const checkPermission = async () => {
+  const { BarcodeScanner } = Plugins;
+
+  const status = await BarcodeScanner.checkPermission();
+
+  if (status.denied) {
+    // the user denied permission for good
+    // redirect user to app settings if they want to grant it anyway
+    const c = confirm(
+      'If you want to grant permission for using your camera, enable it in the app settings.',
+    );
+    if (c) {
+      BarcodeScanner.openAppSettings();
+    }
+  }
+};
 ```
 
 ## TODO

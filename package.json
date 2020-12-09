@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-barcode-scanner",
+  "name": "@dutchconcepts/capacitor-barcode-scanner",
   "version": "1.0.0-alpha.6",
   "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.js",
@@ -64,9 +64,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner"
+    "url": "git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git"
   },
   "bugs": {
     "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner/issues"
-  }
+  },
+  "homepage": "https://github.com/DutchConcepts/capacitor-barcode-scanner#readme",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {}
 }

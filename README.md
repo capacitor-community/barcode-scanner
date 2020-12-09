@@ -7,7 +7,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2020?style=flat-square" />
-  <a href="https://github.com/DutchConcepts/capacitor-barcode-scanner/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/dutchconcepts/capacitor-barcode-scanner/CI?style=flat-square" /></a>
+  <!-- <a href="https://github.com/DutchConcepts/capacitor-barcode-scanner/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/dutchconcepts/capacitor-barcode-scanner/CI?style=flat-square" /></a> -->
   <a href="https://www.npmjs.com/package/@dutchconcepts/capacitor-barcode-scanner"><img src="https://img.shields.io/npm/l/@dutchconcepts/capacitor-barcode-scanner?style=flat-square" /></a>
 <br>
   <a href="https://www.npmjs.com/package/@dutchconcepts/capacitor-barcode-scanner"><img src="https://img.shields.io/npm/dw/@dutchconcepts/capacitor-barcode-scanner?style=flat-square" /></a>

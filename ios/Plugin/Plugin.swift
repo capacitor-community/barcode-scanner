@@ -55,6 +55,22 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var captureVideoPreviewLayer:AVCaptureVideoPreviewLayer?
     var metaOutput: AVCaptureMetadataOutput?
 
+    var metadataObjectTypes = [
+        AVMetadataObject.ObjectType.upce,
+        AVMetadataObject.ObjectType.code39,
+        AVMetadataObject.ObjectType.code39Mod43,
+        AVMetadataObject.ObjectType.ean13,
+        AVMetadataObject.ObjectType.ean8,
+        AVMetadataObject.ObjectType.code93,
+        AVMetadataObject.ObjectType.code128,
+        AVMetadataObject.ObjectType.pdf417,
+        AVMetadataObject.ObjectType.qr,
+        AVMetadataObject.ObjectType.aztec,
+        AVMetadataObject.ObjectType.interleaved2of5,
+        AVMetadataObject.ObjectType.itf14,
+        AVMetadataObject.ObjectType.dataMatrix
+    ]
+
     var currentCamera: Int = 0;
     var frontCamera: AVCaptureDevice?
     var backCamera: AVCaptureDevice?
@@ -110,7 +126,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             metaOutput = AVCaptureMetadataOutput()
             captureSession!.addOutput(metaOutput!)
             metaOutput!.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metaOutput!.metadataObjectTypes = [AVMetadataObject.ObjectType.qr]
+            metaOutput!.metadataObjectTypes = metadataObjectTypes
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
             self.didRunCameraSetup = true
@@ -260,7 +276,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
 
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-        if (found.type == AVMetadataObject.ObjectType.qr) {
+        if (metadataObjectTypes.contains(found.type)) {
             var jsObject = PluginResultData()
 
             if (found.stringValue != nil) {

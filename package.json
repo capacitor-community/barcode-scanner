@@ -1,6 +1,6 @@
 {
   "name": "@dutchconcepts/capacitor-barcode-scanner",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",

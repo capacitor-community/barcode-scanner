@@ -38,7 +38,6 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
-    private String actionOnResume = null;
 
     private boolean hasCamera() {
         // @TODO(): check: https://stackoverflow.com/a/57974578/8634342
@@ -83,7 +82,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         didRunCameraSetup = true;
     }
 
-    private void dismantleCamera(Boolean freeSavedCallFlag) {
+    private void dismantleCamera() {
         // opposite of setupCamera
 
         getActivity()
@@ -102,7 +101,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         didRunCameraPrepare = false;
 
         // If a call is saved and a scan will not run, free the saved call
-        if (freeSavedCallFlag && getSavedCall() != null && !shouldRunScan) {
+        if (getSavedCall() != null && !shouldRunScan) {
             freeSavedCall();
         }
     }
@@ -110,7 +109,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private void prepare() {
         // undo previous setup
         // because it may be prepared with a different config
-        dismantleCamera(true);
+        dismantleCamera();
 
         // setup camera with new config
         setupCamera();
@@ -126,7 +125,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private void destroy() {
         showBackground();
 
-        dismantleCamera(true);
+        dismantleCamera();
     }
 
     private void scan() {
@@ -202,20 +201,15 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @Override
     public void handleOnPause() {
-        if (isScanning) {
-            actionOnResume = "scan";
-        } else {
-            actionOnResume = null;
+        if (mBarcodeView != null) {
+            mBarcodeView.pause();
         }
-        dismantleCamera(false);
     }
 
     @Override
     public void handleOnResume() {
-        if (actionOnResume != null) {
-            if (actionOnResume.equals("scan")) {
-                scan();
-            }
+        if (mBarcodeView != null) {
+            mBarcodeView.resume();
         }
     }
 

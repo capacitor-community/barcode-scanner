@@ -55,22 +55,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var captureVideoPreviewLayer:AVCaptureVideoPreviewLayer?
     var metaOutput: AVCaptureMetadataOutput?
 
-    var metadataObjectTypes = [
-        AVMetadataObject.ObjectType.upce,
-        AVMetadataObject.ObjectType.code39,
-        AVMetadataObject.ObjectType.code39Mod43,
-        AVMetadataObject.ObjectType.ean13,
-        AVMetadataObject.ObjectType.ean8,
-        AVMetadataObject.ObjectType.code93,
-        AVMetadataObject.ObjectType.code128,
-        AVMetadataObject.ObjectType.pdf417,
-        AVMetadataObject.ObjectType.qr,
-        AVMetadataObject.ObjectType.aztec,
-        AVMetadataObject.ObjectType.interleaved2of5,
-        AVMetadataObject.ObjectType.itf14,
-        AVMetadataObject.ObjectType.dataMatrix
-    ]
-
     var currentCamera: Int = 0;
     var frontCamera: AVCaptureDevice?
     var backCamera: AVCaptureDevice?
@@ -82,6 +66,54 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var isBackgroundHidden: Bool = false
 
     var savedCall: CAPPluginCall? = nil
+
+    enum SupportedFormat: String, CaseIterable {
+        // 1D Product
+        //!\ UPC_A is part of EAN_13 according to Apple docs
+        case UPC_E
+        //!\ UPC_EAN_EXTENSION is not supported by AVFoundation
+        case EAN_8
+        case EAN_13
+        // 1D Industrial
+        case CODE_39
+        case CODE_39_MOD_43
+        case CODE_93
+        case CODE_128
+        //!\ CODABAR is not supported by AVFoundation
+        case ITF
+        case ITF_14
+        // 2D
+        case AZTEC
+        case DATA_MATRIX
+        //!\ MAXICODE is not supported by AVFoundation
+        case PDF_417
+        case QR_CODE
+        //!\ RSS_14 is not supported by AVFoundation
+        //!\ RSS_EXPANDED is not supported by AVFoundation
+
+        var value: AVMetadataObject.ObjectType {
+            switch self {
+                // 1D Product
+                case .UPC_E: return AVMetadataObject.ObjectType.upce
+                case .EAN_8: return AVMetadataObject.ObjectType.ean8
+                case .EAN_13: return AVMetadataObject.ObjectType.ean13
+                // 1D Industrial
+                case .CODE_39: return AVMetadataObject.ObjectType.code39
+                case .CODE_39_MOD_43: return AVMetadataObject.ObjectType.code39Mod43
+                case .CODE_93: return AVMetadataObject.ObjectType.code93
+                case .CODE_128: return AVMetadataObject.ObjectType.code128
+                case .ITF: return AVMetadataObject.ObjectType.interleaved2of5
+                case .ITF_14: return AVMetadataObject.ObjectType.itf14
+                // 2D
+                case .AZTEC: return AVMetadataObject.ObjectType.aztec
+                case .DATA_MATRIX: return AVMetadataObject.ObjectType.dataMatrix
+                case .PDF_417: return AVMetadataObject.ObjectType.pdf417
+                case .QR_CODE: return AVMetadataObject.ObjectType.qr
+            }
+        }
+    }
+
+    var targetedFormats = [AVMetadataObject.ObjectType]()
 
     enum CaptureError: Error {
         case backCameraUnavailable
@@ -126,7 +158,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             metaOutput = AVCaptureMetadataOutput()
             captureSession!.addOutput(metaOutput!)
             metaOutput!.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metaOutput!.metadataObjectTypes = metadataObjectTypes
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
             self.didRunCameraSetup = true
@@ -233,7 +264,33 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
             self.shouldRunScan = false
 
+            targetedFormats = [AVMetadataObject.ObjectType]();
+
+            if ((savedCall?.hasOption("targetedFormats")) != nil) {
+                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self, [String]());
+
+                if (_targetedFormats != nil && _targetedFormats?.count ?? 0 > 0) {
+                    _targetedFormats?.forEach { targetedFormat in
+                        if let value = SupportedFormat(rawValue: targetedFormat)?.value {
+                            print(value)
+                            targetedFormats.append(value)
+                        }
+                    }
+                }
+
+                if (targetedFormats.count == 0) {
+                    print("The property targetedFormats was not set correctly.")
+                }
+            }
+
+            if (targetedFormats.count == 0) {
+                for supportedFormat in SupportedFormat.allCases {
+                    targetedFormats.append(supportedFormat.value)
+                }
+            }
+
             DispatchQueue.main.async {
+                self.metaOutput!.metadataObjectTypes = self.targetedFormats
                 self.captureSession!.startRunning()
             }
 
@@ -276,7 +333,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
 
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-        if (metadataObjectTypes.contains(found.type)) {
+        if (targetedFormats.contains(found.type)) {
             var jsObject = PluginResultData()
 
             if (found.stringValue != nil) {

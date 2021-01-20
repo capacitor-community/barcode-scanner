@@ -8,7 +8,7 @@ export interface BarcodeScannerPlugin {
   prepare(): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
-  startScan(): Promise<ScanResult>;
+  startScan(options: ScanOptions): Promise<ScanResult>;
   stopScan(): Promise<void>;
   checkPermission(
     options: CheckPermissionOptions,

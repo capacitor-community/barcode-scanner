@@ -353,7 +353,7 @@ const didUserGrantPermission = async () => {
   return false;
 };
 
-checkPermission();
+didUserGrantPermission();
 ```
 
 If a user denied the permission for good, `status.denied` will be set to true. On Android this will happen only when the user checks the box `never ask again`. To get the permission anyway you will have to redirect the user to the settings of the app. This can be done simply be doing the following:
@@ -377,13 +377,142 @@ const checkPermission = async () => {
 };
 ```
 
+### Target only specific barcodes
+
+You can setup the scanner to only recognize specific types of barcodes like this:
+
+`BarcodeScanner.start({ targetedFormats: ['QR_CODE'] })`
+
+If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
+
+The following types are supported:
+
+<table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Type</th>
+      <th>Android</th>
+      <th>iOS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="6">1D Product</td>
+    </tr>
+    <tr>
+      <td>UPC_A</td>
+      <td>✔</td>
+      <td>✔**</td>
+    </tr>
+    <tr>
+      <td>UPC_E</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>UPC_EAN_EXTENSION</td>
+      <td>✔</td>
+      <td>✖</td>
+    </tr>
+    <tr>
+      <td>EAN_8</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>EAN_13</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td rowspan="8">1D Industrial</td>
+    </tr>
+    <tr>
+      <td>CODE_39</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>CODE_39_MOD_43</td>
+      <td>✖</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>CODE_93</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>CODE_128</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>CODABAR</td>
+      <td>✔</td>
+      <td>✖</td>
+    </tr>
+    <tr>
+      <td>ITF</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>ITF_14</td>
+      <td>✖</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td rowspan="8">2D</td>
+    </tr>
+    <tr>
+      <td>AZTEC</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>DATA_MATRIX</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>MAXICODE</td>
+      <td>✔</td>
+      <td>✖</td>
+    </tr>
+    <tr>
+      <td>PDF_417</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>QR_CODE</td>
+      <td>✔</td>
+      <td>✔</td>
+    </tr>
+    <tr>
+      <td>RSS_14</td>
+      <td>✔</td>
+      <td>✖</td>
+    </tr>
+    <tr>
+      <td>RSS_EXPANDED</td>
+      <td>✔</td>
+      <td>✖</td>
+    </tr>
+  </tbody>
+</table>
+
+\*\* `UPC_A` is supported on iOS, but according to the offical [Apple docs](https://developer.apple.com/documentation/avfoundation/avmetadataobject/objecttype/1618807-ean13) it is part of `EAN_13`. So you should specify `EAN_13` to be able to scan this. If you want to distinguish them from one another, you should manually do so after getting the result.
+
 ## Troubleshooting
 
-1. I have a `Error: Plugin BarcodeScanner does not respond to method call` error message on iOS
+### I have a `Error: Plugin BarcodeScanner does not respond to method call` error message on iOS
 
 In Xcode click on `Product` > `Clean Build Folder` and try to build again.
 
-2. I have a `Cannot resolve symbol BarcodeScanner` error message in Android Studio
+### I have a `Cannot resolve symbol BarcodeScanner` error message in Android Studio
 
 In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
 

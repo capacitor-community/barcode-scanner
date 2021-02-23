@@ -381,7 +381,7 @@ const checkPermission = async () => {
 
 You can setup the scanner to only recognize specific types of barcodes like this:
 
-`BarcodeScanner.start({ targetedFormats: ['QR_CODE'] })`
+`BarcodeScanner.startScan({ targetedFormats: ['QR_CODE'] })`
 
 If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
 

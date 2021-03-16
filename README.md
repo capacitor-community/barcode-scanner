@@ -1,6 +1,6 @@
 <p align="center"><br><img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" /></p>
 <h3 align="center">Barcode Scanner</h3>
-<p align="center"><strong><code>@dutchconcepts/capacitor-barcode-scanner</code></strong></p>
+<p align="center"><strong><code>@capacitor-community/barcode-scanner</code></strong></p>
 <p align="center">
   A fast and efficient (QR) barcode scanner for Capacitor.
 </p>
@@ -8,10 +8,10 @@
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2021?style=flat-square" />
   <!-- <a href="https://github.com/DutchConcepts/capacitor-barcode-scanner/actions?query=workflow%3A%22CI%22"><img src="https://img.shields.io/github/workflow/status/dutchconcepts/capacitor-barcode-scanner/CI?style=flat-square" /></a> -->
-  <a href="https://www.npmjs.com/package/@dutchconcepts/capacitor-barcode-scanner"><img src="https://img.shields.io/npm/l/@dutchconcepts/capacitor-barcode-scanner?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/l/@capacitor-community/barcode-scanner?style=flat-square" /></a>
 <br>
-  <a href="https://www.npmjs.com/package/@dutchconcepts/capacitor-barcode-scanner"><img src="https://img.shields.io/npm/dw/@dutchconcepts/capacitor-barcode-scanner?style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@dutchconcepts/capacitor-barcode-scanner"><img src="https://img.shields.io/npm/v/@dutchconcepts/capacitor-barcode-scanner?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/dw/@capacitor-community/barcode-scanner?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/v/@capacitor-community/barcode-scanner?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 <a href="#contributors-"><img src="https://img.shields.io/badge/all%20contributors-1-orange?style=flat-square" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -43,7 +43,7 @@ On **Android** this library uses [`zxing-android-embedded`](https://github.com/j
 ## Installation
 
 ```bash
-npm install @dutchconcepts/capacitor-barcode-scanner
+npm install @capacitor-community/barcode-scanner
 npx cap sync
 ```
 

@@ -40,7 +40,7 @@
     "dist/",
     "ios/",
     "android/",
-    "DutchconceptsCapacitorBarcodeScanner.podspec"
+    "CapacitorCommunityBarcodeScanner.podspec"
   ],
   "keywords": [
     "capacitor",

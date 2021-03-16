@@ -14,17 +14,25 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
 import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
+import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.journeyapps.barcodescanner.camera.CameraSettings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.json.JSONException;
 
 @NativePlugin(permissionRequestCode = BarcodeScanner.REQUEST_CODE)
 public class BarcodeScanner extends Plugin implements BarcodeCallback {
@@ -38,7 +46,34 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
-    private String actionOnResume = null;
+
+    // declare a map constant for allowed barcode formats
+    private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
+
+    private static Map<String, BarcodeFormat> supportedFormats() {
+        Map<String, BarcodeFormat> map = new HashMap<>();
+        // 1D Product
+        map.put("UPC_A", BarcodeFormat.UPC_A);
+        map.put("UPC_E", BarcodeFormat.UPC_E);
+        map.put("UPC_EAN_EXTENSION", BarcodeFormat.UPC_EAN_EXTENSION);
+        map.put("EAN_8", BarcodeFormat.EAN_8);
+        map.put("EAN_13", BarcodeFormat.EAN_13);
+        // 1D Industrial
+        map.put("CODE_39", BarcodeFormat.CODE_39);
+        map.put("CODE_93", BarcodeFormat.CODE_93);
+        map.put("CODE_128", BarcodeFormat.CODE_128);
+        map.put("CODABAR", BarcodeFormat.CODABAR);
+        map.put("ITF", BarcodeFormat.ITF);
+        // 2D
+        map.put("AZTEC", BarcodeFormat.AZTEC);
+        map.put("DATA_MATRIX", BarcodeFormat.DATA_MATRIX);
+        map.put("MAXICODE", BarcodeFormat.MAXICODE);
+        map.put("PDF_417", BarcodeFormat.PDF_417);
+        map.put("QR_CODE", BarcodeFormat.QR_CODE);
+        map.put("RSS_14", BarcodeFormat.RSS_14);
+        map.put("RSS_EXPANDED", BarcodeFormat.RSS_EXPANDED);
+        return Collections.unmodifiableMap(map);
+    }
 
     private boolean hasCamera() {
         // @TODO(): check: https://stackoverflow.com/a/57974578/8634342
@@ -83,7 +118,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         didRunCameraSetup = true;
     }
 
-    private void dismantleCamera(Boolean freeSavedCallFlag) {
+    private void dismantleCamera() {
         // opposite of setupCamera
 
         getActivity()
@@ -102,7 +137,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         didRunCameraPrepare = false;
 
         // If a call is saved and a scan will not run, free the saved call
-        if (freeSavedCallFlag && getSavedCall() != null && !shouldRunScan) {
+        if (getSavedCall() != null && !shouldRunScan) {
             freeSavedCall();
         }
     }
@@ -110,7 +145,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private void prepare() {
         // undo previous setup
         // because it may be prepared with a different config
-        dismantleCamera(true);
+        dismantleCamera();
 
         // setup camera with new config
         setupCamera();
@@ -126,7 +161,46 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private void destroy() {
         showBackground();
 
-        dismantleCamera(true);
+        dismantleCamera();
+    }
+
+    private void configureCamera() {
+        getActivity()
+            .runOnUiThread(
+                () -> {
+                    PluginCall call = getSavedCall();
+
+                    if (call == null || mBarcodeView == null) {
+                        Log.d("scanner", "Something went wrong with configuring the BarcodeScanner.");
+                        return;
+                    }
+
+                    if (call.hasOption("targetedFormats")) {
+                        JSArray targetedFormats = call.getArray("targetedFormats");
+                        ArrayList<BarcodeFormat> formatList = new ArrayList<>();
+
+                        if (targetedFormats != null && targetedFormats.length() > 0) {
+                            for (int i = 0; i < targetedFormats.length(); i++) {
+                                try {
+                                    String targetedFormat = targetedFormats.getString(i);
+                                    BarcodeFormat targetedBarcodeFormat = supportedFormats.get(targetedFormat);
+                                    if (targetedBarcodeFormat != null) {
+                                        formatList.add(targetedBarcodeFormat);
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        if (formatList.size() > 0) {
+                            mBarcodeView.setDecoderFactory(new DefaultDecoderFactory(formatList));
+                        } else {
+                            Log.d("scanner", "The property targetedFormats was not set correctly.");
+                        }
+                    }
+                }
+            );
     }
 
     private void scan() {
@@ -143,6 +217,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             didRunCameraPrepare = false;
 
             shouldRunScan = false;
+
+            configureCamera();
 
             final BarcodeCallback b = this;
             getActivity()
@@ -202,20 +278,15 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @Override
     public void handleOnPause() {
-        if (isScanning) {
-            actionOnResume = "scan";
-        } else {
-            actionOnResume = null;
+        if (mBarcodeView != null) {
+            mBarcodeView.pause();
         }
-        dismantleCamera(false);
     }
 
     @Override
     public void handleOnResume() {
-        if (actionOnResume != null) {
-            if (actionOnResume.equals("scan")) {
-                scan();
-            }
+        if (mBarcodeView != null) {
+            mBarcodeView.resume();
         }
     }
 

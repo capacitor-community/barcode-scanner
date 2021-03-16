@@ -1,6 +1,7 @@
 import { WebPlugin } from '@capacitor/core';
 import {
   BarcodeScannerPlugin,
+  ScanOptions,
   ScanResult,
   CheckPermissionOptions,
   CheckPermissionResult,
@@ -28,7 +29,7 @@ export class BarcodeScannerWeb
     throw new Error('method not available in web');
   }
 
-  async startScan(): Promise<ScanResult> {
+  async startScan(_options: ScanOptions): Promise<ScanResult> {
     throw new Error('method not available in web');
   }
 

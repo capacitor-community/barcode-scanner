@@ -97,6 +97,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     // Configure the camera (front/back)
                     CameraSettings settings = new CameraSettings();
                     settings.setRequestedCameraId(currentCameraId);
+                    settings.setContinuousFocusEnabled(true);
                     mBarcodeView.setCameraSettings(settings);
 
                     FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(

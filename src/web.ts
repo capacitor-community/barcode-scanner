@@ -5,6 +5,7 @@ import {
   ScanResult,
   CheckPermissionOptions,
   CheckPermissionResult,
+  StopScanOptions,
 } from './definitions';
 
 export class BarcodeScannerWeb
@@ -33,7 +34,7 @@ export class BarcodeScannerWeb
     throw new Error('method not available in web');
   }
 
-  async stopScan(): Promise<void> {
+  async stopScan(_options: StopScanOptions): Promise<void> {
     throw new Error('method not available in web');
   }
 

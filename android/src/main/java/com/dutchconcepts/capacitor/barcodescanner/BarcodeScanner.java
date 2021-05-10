@@ -129,6 +129,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         mBarcodeView.pause();
                         mBarcodeView.stopDecoding();
                         ((ViewGroup) bridge.getWebView().getParent()).removeView(mBarcodeView);
+                        mBarcodeView = null;
                     }
                 }
             );

@@ -22,7 +22,6 @@
 - [Maintainers](#maintainers)
 - [About](#about)
 - [Installation](#installation)
-- [Configuration](#configuration)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
 
@@ -46,41 +45,6 @@ On **Android** this library uses [`zxing-android-embedded`](https://github.com/j
 npm install @capacitor-community/barcode-scanner
 npx cap sync
 ```
-
-### iOS
-
-On iOS, no further steps are needed.
-
-### Android
-
-On Android, register the plugin in your main activity:
-
-```java
-import com.dutchconcepts.capacitor.barcodescanner.BarcodeScanner;
-
-public class MainActivity extends BridgeActivity {
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-
-    // Initializes the Bridge
-    this.init(
-        savedInstanceState,
-        new ArrayList<Class<? extends Plugin>>() {
-          {
-            // Additional plugins you've installed go here
-            // Ex: add(TotallyAwesomePlugin.class);
-            add(BarcodeScanner.class);
-          }
-        }
-      );
-  }
-}
-
-```
-
-## Configuration
 
 ### iOS
 

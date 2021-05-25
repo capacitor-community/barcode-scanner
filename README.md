@@ -516,6 +516,10 @@ In Xcode click on `Product` > `Clean Build Folder` and try to build again.
 
 In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
 
+### The scanner view does not show up
+
+First check that the camera permission is granted. If the scanner view this does not appear it is likely that some UI element is blocking it. Check out these issues for more information on how to resolve such an issue: https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148 and https://github.com/capacitor-community/barcode-scanner/issues/26
+
 ## TODO
 
 A non-exhaustive list of todos:

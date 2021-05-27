@@ -10,6 +10,8 @@ export interface BarcodeScannerPlugin {
   showBackground(): Promise<void>;
   startScan(options: ScanOptions): Promise<ScanResult>;
   stopScan(): Promise<void>;
+  enableTorch(): Promise<void>;
+  disableTorch(): Promise<void>;
   checkPermission(
     options: CheckPermissionOptions,
   ): Promise<CheckPermissionResult>;

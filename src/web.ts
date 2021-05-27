@@ -12,32 +12,32 @@ export class BarcodeScannerWeb
   extends WebPlugin
   implements BarcodeScannerPlugin {
   async prepare(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async hideBackground(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async showBackground(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async startScan(_options: ScanOptions): Promise<ScanResult> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async stopScan(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async checkPermission(
     _options: CheckPermissionOptions,
   ): Promise<CheckPermissionResult> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async openAppSettings(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 }

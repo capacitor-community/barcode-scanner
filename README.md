@@ -162,6 +162,8 @@ Because of the fact that the Scanner View will be rendered behind the WebView, y
 
 The `<html>` element is made transparent by adding `background: 'transparent';` to the `style=""` attribute. So in theory it is possible that this is overwritten by some CSS property in your setup. Because this plugins does not aim to fix every single scenario out there, you will have to think of a workaround for this yourself, if this applies to you (probably not).
 
+If you still cannot see the camera view, check if any other elements are blocking it. For more info on this see [here](#the-scanner-view-does-not-show-up).
+
 ### Stopping a scan
 
 After `startScan()` is resolved, the Scanner View will be automatically destroyed to save battery. But if you want to cancel the scan before `startScan()` is resolved (AKA no code has been recognized yet), you will have to call `stopScan()` manually. Example:

@@ -104,11 +104,9 @@ Within your `AndroidManifest.xml` file, change the following:
 Scanning a (QR) barcode can be as simple as:
 
 ```js
-import { Plugins } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const startScan = async () => {
-  const { BarcodeScanner } = Plugins;
-
   BarcodeScanner.hideBackground(); // make background of WebView transparent
 
   const result = await BarcodeScanner.startScan(); // start scanning and wait for a result
@@ -124,17 +122,16 @@ const startScan = async () => {
 
 Because of the fact that the Scanner View will be rendered behind the WebView, you will have to call `hideBackground()` to make the WebView and the `<html>` element transparent. Every other element that needs transparency, you will have to handle yourself.
 
-The `<html>` element is made transparent by adding `background: 'transparent';` to the `style=""` attribute. So in theory it is possible that this is overwritten by some CSS property in your setup. Because this plugins does not aim to fix every single scenario out there, you will have to think of a workaround for this yourself, if this applies to you (probably not).
+The `<html>` element is made transparent by adding `background: 'transparent';` to the `style=""` attribute. So in theory it is possible that this is overwritten by some CSS property in your setup. Because this plugin does not aim to fix every single scenario out there, you will have to think of a workaround for this yourself, if this applies to you (probably not).
 
 ### Stopping a scan
 
 After `startScan()` is resolved, the Scanner View will be automatically destroyed to save battery. But if you want to cancel the scan before `startScan()` is resolved (AKA no code has been recognized yet), you will have to call `stopScan()` manually. Example:
 
 ```js
-import { Plugins } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const stopScan = () => {
-  const { BarcodeScanner } = Plugins;
   BarcodeScanner.showBackground();
   BarcodeScanner.stopScan();
 };
@@ -146,12 +143,11 @@ In Vue.js you could do something like this in a specific view where you use the 
 
 ```vue
 <script>
-import { Plugins } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 export default {
   methods: {
     stopScan() {
-      const { BarcodeScanner } = Plugins;
       BarcodeScanner.showBackground();
       BarcodeScanner.stopScan();
     },
@@ -175,15 +171,13 @@ To boost performance and responsiveness (by just a bit), a `prepare()` method is
 For example:
 
 ```js
-import { Plugins } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const prepare = () => {
-  const { BarcodeScanner } = Plugins;
   BarcodeScanner.prepare();
 };
 
 const startScan = async () => {
-  const { BarcodeScanner } = Plugins;
   BarcodeScanner.hideBackground();
   const result = await BarcodeScanner.startScan();
   if (result.hasContent) {
@@ -192,7 +186,6 @@ const startScan = async () => {
 };
 
 const stopScan = () => {
-  const { BarcodeScanner } = Plugins;
   BarcodeScanner.showBackground();
   BarcodeScanner.stopScan();
 };
@@ -215,8 +208,9 @@ askUser();
 This is fully optional and would work the same as:
 
 ```js
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+
 const startScan = async () => {
-  const { BarcodeScanner } = Plugins;
   BarcodeScanner.hideBackground();
   const result = await BarcodeScanner.startScan();
   if (result.hasContent) {
@@ -242,9 +236,9 @@ The latter will just appear a little slower to the user.
 This plugin does not automatically handle permissions. But the plugin _does_ have a utility method to check and request the permission. You will have to request the permission from JavaScript. A simple example follows:
 
 ```js
-const checkPermission = async () => {
-  const { BarcodeScanner } = Plugins;
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
+const checkPermission = async () => {
   // check or request permission
   const status = await BarcodeScanner.checkPermission({ force: true });
 
@@ -260,8 +254,9 @@ const checkPermission = async () => {
 A more detailed and more UX-optimized example:
 
 ```js
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+
 const didUserGrantPermission = async () => {
-  const { BarcodeScanner } = Plugins;
   // check if user already granted permission
   const status = await BarcodeScanner.checkPermission({ force: false });
 
@@ -323,9 +318,9 @@ didUserGrantPermission();
 If a user denied the permission for good, `status.denied` will be set to true. On Android this will happen only when the user checks the box `never ask again`. To get the permission anyway you will have to redirect the user to the settings of the app. This can be done simply be doing the following:
 
 ```js
-const checkPermission = async () => {
-  const { BarcodeScanner } = Plugins;
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
+const checkPermission = async () => {
   const status = await BarcodeScanner.checkPermission();
 
   if (status.denied) {

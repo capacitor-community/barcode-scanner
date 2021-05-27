@@ -1,11 +1,10 @@
-import { registerWebPlugin, WebPlugin } from '@capacitor/core';
+import { WebPlugin } from '@capacitor/core';
 import {
   BarcodeScannerPlugin,
-
-
   CheckPermissionOptions,
-  CheckPermissionResult, ScanOptions,
-  ScanResult
+  CheckPermissionResult,
+  ScanOptions,
+  ScanResult,
 } from './definitions';
 
 export class BarcodeScannerWeb
@@ -61,4 +60,5 @@ const BarcodeScanner = new BarcodeScannerWeb();
 
 export { BarcodeScanner };
 
+import { registerWebPlugin } from '@capacitor/core';
 registerWebPlugin(BarcodeScanner);

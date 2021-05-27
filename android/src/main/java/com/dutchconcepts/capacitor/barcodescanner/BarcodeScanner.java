@@ -239,16 +239,15 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
     }
 
-    private void setTorch(boolean on){
-        isTorchOn = on;
+    private void setTorch(boolean on) {
         getActivity()
-        .runOnUiThread(
-            () -> {
-                if (mBarcodeView != null) {
-                    mBarcodeView.setTorch(on);
+            .runOnUiThread(
+                () -> {
+                    if (mBarcodeView != null) {
+                        mBarcodeView.setTorch(on);
+                    }
                 }
-            }
-        );
+            );
     }
 
     private void hideBackground() {

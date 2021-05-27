@@ -46,7 +46,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
-    private boolean isTorchOn = false;
+    private boolean shouldStartWithTorchOn = false;
 
     // declare a map constant for allowed barcode formats
     private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
@@ -139,6 +139,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         didRunCameraSetup = false;
         didRunCameraPrepare = false;
 
+        setTorch(false);
+
         // If a call is saved and a scan will not run, free the saved call
         if (getSavedCall() != null && !shouldRunScan) {
             freeSavedCall();
@@ -200,6 +202,16 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                             mBarcodeView.setDecoderFactory(new DefaultDecoderFactory(formatList));
                         } else {
                             Log.d("scanner", "The property targetedFormats was not set correctly.");
+                        }
+                    }
+
+                    shouldStartWithTorchOn = false;
+
+                    if (call.hasOption("shouldStartWithTorchOn")) {
+                        Boolean torchOn = call.getBoolean("torch");
+                        if (torchOn != null) {
+                            shouldStartWithTorchOn = torchOn;
+                            setTorch(torchOn);
                         }
                     }
                 }
@@ -294,6 +306,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     public void handleOnPause() {
         if (mBarcodeView != null) {
             mBarcodeView.pause();
+            setTorch(false);
         }
     }
 
@@ -301,6 +314,9 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     public void handleOnResume() {
         if (mBarcodeView != null) {
             mBarcodeView.resume();
+            if (isScanning && shouldStartWithTorchOn) {
+                setTorch(true);
+            }
         }
     }
 
@@ -314,18 +330,13 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     }
 
     @PluginMethod
-    public void enableTorch(PluginCall call){
-        if(!isTorchOn){
-            setTorch(true);
-        }
+    public void enableTorch(PluginCall call) {
+        setTorch(true);
         call.resolve();
     }
 
     @PluginMethod
-    public void disableTorch(PluginCall call){
-        if(isTorchOn){
-            setTorch(false);
-        }
+    public void disableTorch(PluginCall call) {
         call.resolve();
     }
 

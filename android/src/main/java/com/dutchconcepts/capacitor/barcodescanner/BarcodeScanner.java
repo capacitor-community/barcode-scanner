@@ -321,6 +321,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void stopScan(PluginCall call) {
+        if(this.getSavedCall() != null){
+          JSObject jsObject = new JSObject();
+          jsObject.put("scanStopped", true);
+          jsObject.put("msg", "Cancelled");
+          this.getSavedCall().resolve(jsObject);
+        }
         destroy();
         call.resolve();
     }

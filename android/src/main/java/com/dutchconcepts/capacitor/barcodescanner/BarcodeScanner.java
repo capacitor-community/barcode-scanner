@@ -272,6 +272,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         if (barcodeResult.getText() != null) {
             jsObject.put("hasContent", true);
             jsObject.put("content", barcodeResult.getText());
+            jsObject.put("format", barcodeResult.getBarcodeFormat());
         } else {
             jsObject.put("hasContent", false);
         }

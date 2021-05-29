@@ -42,6 +42,7 @@ export interface ScanOptions {
 export interface ScanResult {
   hasContent: boolean;
   content?: string;
+  format?: SupportedFormat;
 }
 
 export interface CheckPermissionOptions {

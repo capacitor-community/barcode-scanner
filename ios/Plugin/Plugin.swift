@@ -337,8 +337,12 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             var jsObject = PluginResultData()
 
             if (found.stringValue != nil) {
+                var typeNameArr = found.type.rawValue.components(separatedBy: ".")
+
                 jsObject["hasContent"] = true
                 jsObject["content"] = found.stringValue
+                jsObject["format"] = typeNameArr[typeNameArr.count - 1]
+
             } else {
                 jsObject["hasContent"] = false
             }

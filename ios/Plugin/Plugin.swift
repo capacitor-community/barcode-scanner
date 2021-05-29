@@ -373,6 +373,13 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func stopScan(_ call: CAPPluginCall) {
+		if (self.savedCall != nil) {
+			var jsObject = PluginResultData()
+			jsObject["scanStopped"] = true
+            jsObject["msg"] = "Cancelled"
+			savedCall?.resolve(jsObject)
+			savedCall = nil
+         }
         self.destroy()
         call.resolve()
     }

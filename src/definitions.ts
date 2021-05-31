@@ -2,10 +2,10 @@ export interface BarcodeScannerPlugin {
   prepare(): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
-  startScan(options: ScanOptions): Promise<ScanResult>;
+  startScan(options?: ScanOptions): Promise<ScanResult>;
   stopScan(): Promise<void>;
   checkPermission(
-    options: CheckPermissionOptions,
+    options?: CheckPermissionOptions,
   ): Promise<CheckPermissionResult>;
   openAppSettings(): Promise<void>;
 }
@@ -36,7 +36,7 @@ export enum SupportedFormat {
 }
 
 export interface ScanOptions {
-  targetedFormats?: [SupportedFormat];
+  targetedFormats?: SupportedFormat[];
 }
 
 export interface ScanResult {

@@ -337,14 +337,23 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             var jsObject = PluginResultData()
 
             if (found.stringValue != nil) {
-                var typeNameArr = found.type.rawValue.components(separatedBy: ".")
+
+                var type: String = ""
+
+                SupportedFormat.allCases.forEach { format in
+
+                  if (format.value.rawValue == found.type.rawValue) {
+                      type = format.rawValue
+                  }
+
+                }
 
                 jsObject["hasContent"] = true
                 jsObject["content"] = found.stringValue
-                jsObject["format"] = typeNameArr[typeNameArr.count - 1]
+                jsObject["format"] = type
 
-            } else {
-                jsObject["hasContent"] = false
+           } else {
+             jsObject["hasContent"] = false
             }
 
             if (self.savedCall != nil) {

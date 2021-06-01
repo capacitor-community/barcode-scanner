@@ -520,7 +520,7 @@ In Android Studio click `File` > `Sync Project with Gradle Files` and try to bui
 
 ### The scanner view does not show up
 
-First check that the camera permission is granted. If the scanner view this does not appear it is likely that some UI element is blocking it. Check out these issues for more information on how to resolve such an issue: [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148) and [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
+First check that the camera permission is granted. If the scanner view does still not appear it is likely that some UI element is blocking it. Check out these issues for more information on how to resolve such an issue: [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148) and [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
 
 ## TODO
 

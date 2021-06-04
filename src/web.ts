@@ -1,5 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
-import {
+
+import type {
   BarcodeScannerPlugin,
   ScanOptions,
   ScanResult,
@@ -10,47 +11,33 @@ import {
 export class BarcodeScannerWeb
   extends WebPlugin
   implements BarcodeScannerPlugin {
-  constructor() {
-    super({
-      name: 'BarcodeScanner',
-      platforms: ['web'],
-    });
-  }
-
   async prepare(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async hideBackground(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async showBackground(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async startScan(_options: ScanOptions): Promise<ScanResult> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async stopScan(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async checkPermission(
     _options: CheckPermissionOptions,
   ): Promise<CheckPermissionResult> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 
   async openAppSettings(): Promise<void> {
-    throw new Error('method not available in web');
+    throw this.unimplemented('Not implemented on web.');
   }
 }
-
-const BarcodeScanner = new BarcodeScannerWeb();
-
-export { BarcodeScanner };
-
-import { registerWebPlugin } from '@capacitor/core';
-registerWebPlugin(BarcodeScanner);

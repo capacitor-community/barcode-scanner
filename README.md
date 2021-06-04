@@ -39,6 +39,14 @@ On **iOS** this library makes use of Apple's own `AVFoundation`. This means **[t
 
 On **Android** this library uses [`zxing-android-embedded`](https://github.com/journeyapps/zxing-android-embedded) which uses [`zxing`](https://github.com/zxing/zxing) under the hood. That means **[this list of barcodes](https://github.com/zxing/zxing/#supported-formats)** is supported.
 
+### Note on supported Capacitor versions
+
+`v2.x` supports Capacitor `v3.x`
+
+`v1.x` supports Capacitor `v2.x`
+
+All releases of this package can be found on [npm](https://www.npmjs.com/package/@capacitor-community/barcode-scanner?activeTab=versions) and on [GitHub Releases](https://github.com/capacitor-community/barcode-scanner/releases)
+
 ## Installation
 
 ```bash

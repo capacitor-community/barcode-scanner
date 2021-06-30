@@ -334,7 +334,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         if (targetedFormats.contains(found.type)) {
-            var jsObject = PluginResultData()
+            var jsObject = PluginCallResultData()
 
             if (found.stringValue != nil) {
                 jsObject["hasContent"] = true
@@ -373,11 +373,11 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func stopScan(_ call: CAPPluginCall) {
-        if (call.hasOption("resolveScan") && call.getBool("resolveScan") && self.savedCall != nil) {
-            var jsObject = PluginResultData()
+        if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
+            var jsObject = PluginCallResultData()
             jsObject["hasContent"] = false
 
-            savedCall.resolve(jsObject)
+            savedCall?.resolve(jsObject)
             savedCall = nil
         }
 
@@ -388,7 +388,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @objc func checkPermission(_ call: CAPPluginCall) {
         let force = call.getBool("force") ?? false
 
-        var savedReturnObject = PluginResultData()
+        var savedReturnObject = PluginCallResultData()
 
         DispatchQueue.main.async {
             switch AVCaptureDevice.authorizationStatus(for: .video) {

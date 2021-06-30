@@ -28,6 +28,7 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
+import com.google.zxing.client.android.Intents;
 import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
@@ -185,6 +186,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         return;
                     }
 
+                    DefaultDecoderFactory defaultDecoderFactory = new DefaultDecoderFactory(null, null, null, Intents.Scan.MIXED_SCAN);
+
                     if (call.hasOption("targetedFormats")) {
                         JSArray targetedFormats = call.getArray("targetedFormats");
                         ArrayList<BarcodeFormat> formatList = new ArrayList<>();
@@ -204,11 +207,13 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         }
 
                         if (formatList.size() > 0) {
-                            mBarcodeView.setDecoderFactory(new DefaultDecoderFactory(formatList));
+                            defaultDecoderFactory = new DefaultDecoderFactory(formatList, null, null, Intents.Scan.MIXED_SCAN);
                         } else {
                             Log.d("scanner", "The property targetedFormats was not set correctly.");
                         }
                     }
+
+                    mBarcodeView.setDecoderFactory(defaultDecoderFactory);
                 }
             );
     }

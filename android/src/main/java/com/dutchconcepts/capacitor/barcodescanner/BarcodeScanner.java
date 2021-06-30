@@ -329,11 +329,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void stopScan(PluginCall call) {
-        if (call.hasOption("resolveScan") && call.getBool("resolveScan") && getSavedCall() != null) {
-            JSObject jsObject = new JSObject();
-            jsObject.put("hasContent", false);
+        if (call.hasOption("resolveScan") && getSavedCall() != null) {
+            Boolean resolveScan = call.getBoolean("resolveScan", false);
+            if (resolveScan != null && resolveScan) {
+                JSObject jsObject = new JSObject();
+                jsObject.put("hasContent", false);
 
-            if (getSavedCall() != null) {
                 getSavedCall().resolve(jsObject);
             }
         }
@@ -466,7 +467,10 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     public void checkPermission(PluginCall call) {
         Boolean force = call.getBoolean("force", false);
 
-        _checkPermission(call, force);
+        if (force != null && force) {
+            _checkPermission(call, true);
+        }
+        _checkPermission(call, false);
     }
 
     @PluginMethod

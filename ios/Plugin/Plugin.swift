@@ -376,7 +376,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 		if (self.savedCall != nil) {
 			var jsObject = PluginResultData()
 			jsObject["scanStopped"] = true
-            jsObject["msg"] = "Cancelled"
+			jsObject["msg"] = "Cancelled"
 			savedCall?.resolve(jsObject)
 			savedCall = nil
          }

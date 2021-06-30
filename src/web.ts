@@ -28,7 +28,7 @@ export class BarcodeScannerWeb
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async stopScan(_options: StopScanOptions): Promise<void> {
+  async stopScan(_options?: StopScanOptions): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 

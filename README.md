@@ -109,6 +109,8 @@ Within your `AndroidManifest.xml` file, change the following:
 
 ## Usage
 
+The complete API reference can be found [here](./API_REFERENCE.md).
+
 Scanning a (QR) barcode can be as simple as:
 
 ```js

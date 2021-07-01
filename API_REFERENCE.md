@@ -99,6 +99,7 @@ openAppSettings() => Promise<void>
 | ---------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
 | **`hasContent`** | <code>boolean</code> | This indicates whether or not the scan resulted in readable content. When stopping the scan with `resolveScan` set to `true`, for example, this parameter is set to `false`, because no actual content was scanned. | 1.0.0 |
 | **`content`**    | <code>string</code>  | This holds the content of the barcode if available.                                                                                                                                                                 | 1.0.0 |
+| **`format`**     | <code>string</code>  | This returns format of scan result.                                                                                                                                                                                 | 2.1.1 |
 
 #### ScanOptions
 

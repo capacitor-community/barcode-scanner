@@ -67,6 +67,11 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     var savedCall: CAPPluginCall? = nil
 
+    var frameX: Int = 0;
+    var frameY: Int = 0;
+    var frameWidth: Int = 0;
+    var frameHeight: Int = 0;
+    
     enum SupportedFormat: String, CaseIterable {
         // 1D Product
         //!\ UPC_A is part of EAN_13 according to Apple docs
@@ -229,6 +234,15 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         // because it may be prepared with a different config
         self.dismantleCamera()
 
+        if ((savedCall?.options["screenSizes"]) != nil) {
+            self.frameX = savedCall?.options["frameX"] as! Int;
+            self.frameY = savedCall?.options["frameY"] as! Int;
+            self.frameWidth = Int(UIScreen.main.bounds.width);
+            self.frameHeight = Int(UIScreen.main.bounds.width) / 2;
+            self.cameraView = CameraView(frame: CGRect(x: self.frameX, y: self.frameY, width: self.frameWidth, height: self.frameHeight))
+            self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight];
+        }
+
         DispatchQueue.main.async {
             // setup camera with new config
             if (self.setupCamera()) {
@@ -334,7 +348,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         if (targetedFormats.contains(found.type)) {
-            var jsObject = PluginCallResultData()
+            var jsObject = PluginResultData()
 
             if (found.stringValue != nil) {
                 jsObject["hasContent"] = true
@@ -373,14 +387,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func stopScan(_ call: CAPPluginCall) {
-        if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
-            var jsObject = PluginCallResultData()
-            jsObject["hasContent"] = false
-
-            savedCall?.resolve(jsObject)
-            savedCall = nil
-        }
-
         self.destroy()
         call.resolve()
     }
@@ -388,7 +394,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @objc func checkPermission(_ call: CAPPluginCall) {
         let force = call.getBool("force") ?? false
 
-        var savedReturnObject = PluginCallResultData()
+        var savedReturnObject = PluginResultData()
 
         DispatchQueue.main.async {
             switch AVCaptureDevice.authorizationStatus(for: .video) {

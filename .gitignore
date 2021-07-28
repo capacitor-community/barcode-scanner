@@ -3,7 +3,6 @@
 # And the CLI then renames it
 
 # node files
-dist/
 node_modules/
 
 # iOS files

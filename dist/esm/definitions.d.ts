@@ -30,6 +30,11 @@ export declare enum SupportedFormat {
 }
 export interface ScanOptions {
     targetedFormats?: SupportedFormat[];
+    screenSizes?: boolean; 
+    frameX?: number; 
+    frameY?: number; 
+    frameWidth?: number; 
+    frameHeight?: number; 
 }
 export interface ScanResult {
     hasContent: boolean;

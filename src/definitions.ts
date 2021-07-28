@@ -88,6 +88,11 @@ export interface ScanOptions {
    * @since 1.2.0
    */
   targetedFormats?: SupportedFormat[];
+  screenSizes?: boolean; 
+  frameX?: number; 
+  frameY?: number; 
+  frameWidth?: number; 
+  frameHeight?: number; 
 }
 
 export interface StopScanOptions {

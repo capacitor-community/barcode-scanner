@@ -3,6 +3,7 @@ package com.dutchconcepts.capacitor.barcodescanner;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -14,14 +15,20 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
-import com.getcapacitor.NativePlugin;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
+import com.google.zxing.client.android.Intents;
 import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
@@ -34,8 +41,10 @@ import java.util.List;
 import java.util.Map;
 import org.json.JSONException;
 
-@NativePlugin(permissionRequestCode = BarcodeScanner.REQUEST_CODE)
+@CapacitorPlugin(permissions = { @Permission(strings = { Manifest.permission.CAMERA }, alias = BarcodeScanner.PERMISSION_ALIAS_CAMERA) })
 public class BarcodeScanner extends Plugin implements BarcodeCallback {
+
+    public static final String PERMISSION_ALIAS_CAMERA = "camera";
 
     private BarcodeView mBarcodeView;
 
@@ -180,6 +189,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         return;
                     }
 
+                    DefaultDecoderFactory defaultDecoderFactory = new DefaultDecoderFactory(null, null, null, Intents.Scan.MIXED_SCAN);
+
                     if (call.hasOption("targetedFormats")) {
                         JSArray targetedFormats = call.getArray("targetedFormats");
                         ArrayList<BarcodeFormat> formatList = new ArrayList<>();
@@ -199,7 +210,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         }
 
                         if (formatList.size() > 0) {
-                            mBarcodeView.setDecoderFactory(new DefaultDecoderFactory(formatList));
+                            defaultDecoderFactory = new DefaultDecoderFactory(formatList, null, null, Intents.Scan.MIXED_SCAN);
                         } else {
                             Log.d("scanner", "The property targetedFormats was not set correctly.");
                         }
@@ -214,6 +225,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                             setTorch(torchOn);
                         }
                     }
+                    mBarcodeView.setDecoderFactory(defaultDecoderFactory);
                 }
             );
     }
@@ -360,11 +372,19 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void stopScan(PluginCall call) {
+        if (call.hasOption("resolveScan") && getSavedCall() != null) {
+            Boolean resolveScan = call.getBoolean("resolveScan", false);
+            if (resolveScan != null && resolveScan) {
+                JSObject jsObject = new JSObject();
+                jsObject.put("hasContent", false);
+
+                getSavedCall().resolve(jsObject);
+            }
+        }
+
         destroy();
         call.resolve();
     }
-
-    static final int REQUEST_CODE = 57351;
 
     private static final String TAG_PERMISSION = "permission";
 
@@ -375,13 +395,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private static final String PERMISSION_NAME = Manifest.permission.CAMERA;
 
-    private PluginCall savedCall;
     private JSObject savedReturnObject;
 
     void _checkPermission(PluginCall call, boolean force) {
         this.savedReturnObject = new JSObject();
 
-        if (hasPermission(PERMISSION_NAME)) {
+        if (getPermissionState(PERMISSION_ALIAS_CAMERA) == PermissionState.GRANTED) {
             // permission GRANTED
             this.savedReturnObject.put(GRANTED, true);
         } else {
@@ -406,10 +425,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     // can be asked (again)
                     if (force) {
                         // request permission
-                        // also set this.savedCall = call
                         // so a callback can be made from the handleRequestPermissionsResult
-                        pluginRequestPermission(PERMISSION_NAME, REQUEST_CODE);
-                        this.savedCall = call;
+                        requestPermissionForAlias(PERMISSION_ALIAS_CAMERA, call, "cameraPermsCallback");
                         return;
                     }
                 } else {
@@ -428,7 +445,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         call.resolve(this.savedReturnObject);
     }
 
-    private static String PREFS_PERMISSION_FIRST_TIME_ASKING = "PREFS_PERMISSION_FIRST_TIME_ASKING";
+    private static final String PREFS_PERMISSION_FIRST_TIME_ASKING = "PREFS_PERMISSION_FIRST_TIME_ASKING";
 
     private void setPermissionFirstTimeAsking(String permission, boolean isFirstTime) {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences(PREFS_PERMISSION_FIRST_TIME_ASKING, MODE_PRIVATE);
@@ -439,22 +456,19 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         return getActivity().getSharedPreferences(PREFS_PERMISSION_FIRST_TIME_ASKING, MODE_PRIVATE).getBoolean(permission, true);
     }
 
-    @Override
-    protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (this.savedCall == null || this.savedReturnObject == null || permissions.length <= 0) {
+    @PermissionCallback
+    private void cameraPermsCallback(PluginCall call) {
+        if (this.savedReturnObject == null) {
             // No stored plugin call for permissions request result
             return;
         }
-        String permission = permissions[0];
 
         // the user was apparently requested this permission
         // update the preferences to reflect this
-        setPermissionFirstTimeAsking(permission, false);
+        setPermissionFirstTimeAsking(PERMISSION_NAME, false);
 
         boolean granted = false;
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (getPermissionState(PERMISSION_ALIAS_CAMERA) == PermissionState.GRANTED) {
             granted = true;
         }
 
@@ -467,7 +481,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             this.savedReturnObject.put(GRANTED, true);
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (getActivity().shouldShowRequestPermissionRationale(permission)) {
+                if (getActivity().shouldShowRequestPermissionRationale(PERMISSION_NAME)) {
                     // permission DENIED
                     // BUT not for always
                     Log.d(TAG_PERMISSION, "Asked. Denied For Now");
@@ -487,9 +501,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             }
         }
         // resolve saved call
-        this.savedCall.resolve(this.savedReturnObject);
+        call.resolve(this.savedReturnObject);
         // release saved vars
-        this.savedCall = null;
         this.savedReturnObject = null;
     }
 
@@ -497,16 +510,21 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     public void checkPermission(PluginCall call) {
         Boolean force = call.getBoolean("force", false);
 
-        _checkPermission(call, force);
+        if (force != null && force) {
+            _checkPermission(call, true);
+        }
+        _checkPermission(call, false);
     }
-
-    private static final int RESULT_CODE = 8309;
 
     @PluginMethod
     public void openAppSettings(PluginCall call) {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getAppId(), null));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivityForResult(call, intent, RESULT_CODE);
+        startActivityForResult(call, intent, "openSettingsResult");
+    }
+
+    @ActivityCallback
+    private void openSettingsResult(PluginCall call, ActivityResult result) {
         call.resolve();
     }
 }

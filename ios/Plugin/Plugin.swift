@@ -266,8 +266,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
             targetedFormats = [AVMetadataObject.ObjectType]();
 
-            if ((savedCall?.hasOption("targetedFormats")) != nil) {
-                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self, [String]());
+            if ((savedCall?.options["targetedFormats"]) != nil) {
+                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self);
 
                 if (_targetedFormats != nil && _targetedFormats?.count ?? 0 > 0) {
                     _targetedFormats?.forEach { targetedFormat in
@@ -302,13 +302,13 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     private func hideBackground() {
         DispatchQueue.main.async {
-            self.bridge.getWebView()!.isOpaque = false
-            self.bridge.getWebView()!.backgroundColor = UIColor.clear
-            self.bridge.getWebView()!.scrollView.backgroundColor = UIColor.clear
+            self.bridge?.webView!.isOpaque = false
+            self.bridge?.webView!.backgroundColor = UIColor.clear
+            self.bridge?.webView!.scrollView.backgroundColor = UIColor.clear
 
             let javascript = "document.documentElement.style.backgroundColor = 'transparent'"
 
-            self.bridge.getWebView()!.evaluateJavaScript(javascript)
+            self.bridge?.webView!.evaluateJavaScript(javascript)
         }
     }
 
@@ -316,10 +316,10 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         DispatchQueue.main.async {
             let javascript = "document.documentElement.style.backgroundColor = ''"
 
-            self.bridge.getWebView()!.evaluateJavaScript(javascript) { (result, error) in
-                self.bridge.getWebView()!.isOpaque = true
-                self.bridge.getWebView()!.backgroundColor = UIColor.white
-                self.bridge.getWebView()!.scrollView.backgroundColor = UIColor.white
+            self.bridge?.webView!.evaluateJavaScript(javascript) { (result, error) in
+                self.bridge?.webView!.isOpaque = true
+                self.bridge?.webView!.backgroundColor = UIColor.white
+                self.bridge?.webView!.scrollView.backgroundColor = UIColor.white
             }
         }
     }
@@ -334,7 +334,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         if (targetedFormats.contains(found.type)) {
-            var jsObject = PluginResultData()
+            var jsObject = PluginCallResultData()
 
             if (found.stringValue != nil) {
                 jsObject["hasContent"] = true
@@ -373,6 +373,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func stopScan(_ call: CAPPluginCall) {
+        if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
+            var jsObject = PluginCallResultData()
+            jsObject["hasContent"] = false
+
+            savedCall?.resolve(jsObject)
+            savedCall = nil
+        }
+
         self.destroy()
         call.resolve()
     }
@@ -380,7 +388,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @objc func checkPermission(_ call: CAPPluginCall) {
         let force = call.getBool("force") ?? false
 
-        var savedReturnObject = PluginResultData()
+        var savedReturnObject = PluginCallResultData()
 
         DispatchQueue.main.async {
             switch AVCaptureDevice.authorizationStatus(for: .video) {

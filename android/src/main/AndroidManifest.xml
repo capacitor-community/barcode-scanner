@@ -8,4 +8,10 @@
     <!-- <uses-feature android:name="android.hardware.camera" android:required="false" /> -->
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
+    <application>
+        <activity
+            android:name=".BarcodeActivity"
+            android:exported="true" />
+    </application>
 </manifest>

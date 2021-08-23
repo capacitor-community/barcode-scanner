@@ -22,8 +22,8 @@ public class BarcodeActivity extends AppCompatActivity {
         Intent intent = getIntent();
         ArrayList<String> targetedFormats = intent.getStringArrayListExtra("targetedFormats");
 
-        if (targetedFormats == null) {
-            targetedFormats = GetAllTypes();
+        if (targetedFormats == null || targetedFormats.size() == 0) {
+            targetedFormats = (ArrayList<String>) IntentIntegrator.ALL_CODE_TYPES;
         }
 
         try {
@@ -38,10 +38,6 @@ public class BarcodeActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    }
-
-    private ArrayList<String> GetAllTypes() {
-        return new ArrayList<>(IntentIntegrator.ALL_CODE_TYPES);
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.dutchconcepts.capacitor.barcodescanner;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -34,6 +33,7 @@ import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
 import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.journeyapps.barcodescanner.camera.CameraSettings;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,19 +45,23 @@ import org.json.JSONException;
 public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     public static final String PERMISSION_ALIAS_CAMERA = "camera";
-
+    // declare a map constant for allowed barcode formats
+    private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
+    private static final String TAG_PERMISSION = "permission";
+    private static final String GRANTED = "granted";
+    private static final String DENIED = "denied";
+    private static final String ASKED = "asked";
+    private static final String NEVER_ASKED = "neverAsked";
+    private static final String PERMISSION_NAME = Manifest.permission.CAMERA;
+    private static final String PREFS_PERMISSION_FIRST_TIME_ASKING = "PREFS_PERMISSION_FIRST_TIME_ASKING";
     private BarcodeView mBarcodeView;
-
-    private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-
+    private final int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private boolean isScanning = false;
     private boolean shouldRunScan = false;
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
-
-    // declare a map constant for allowed barcode formats
-    private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
+    private JSObject savedReturnObject;
 
     private static Map<String, BarcodeFormat> supportedFormats() {
         Map<String, BarcodeFormat> map = new HashMap<>();
@@ -86,11 +90,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private boolean hasCamera() {
         // @TODO(): check: https://stackoverflow.com/a/57974578/8634342
-        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-            return true;
-        } else {
-            return false;
-        }
+        return getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
     }
 
     private void setupCamera() {
@@ -328,8 +328,46 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void startScan(PluginCall call) {
-        saveCall(call);
-        scan();
+        boolean useIntegrator = call.getBoolean("inIntegratorView", false);
+        if (!useIntegrator) {
+            saveCall(call);
+            scan();
+        } else {
+            JSArray targetedFormats = call.getArray("targetedFormats", new JSArray());
+            Intent intent = new Intent(getActivity(), BarcodeActivity.class);
+            try {
+                intent.putExtra("targetedFormats", (ArrayList<String>) targetedFormats.<String>toList());
+            } catch (JSONException | NullPointerException ex) {
+                // if it fails IntegratorView uses all formats.
+            }
+            startActivityForResult(call, intent, "scanResult");
+            saveCall(call);
+        }
+    }
+
+    @ActivityCallback
+    private void scanResult(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+
+        if (result.getData() == null) {
+            return;
+        }
+
+        String barcode = result.getData().getStringExtra("Barcode");
+        // Do something with the result data
+
+        JSObject jsObject = new JSObject();
+
+        if (barcode != null) {
+            jsObject.put("hasContent", true);
+            jsObject.put("content", barcode);
+        } else {
+            jsObject.put("hasContent", false);
+        }
+
+        call.resolve(jsObject);
     }
 
     @PluginMethod
@@ -347,17 +385,6 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         destroy();
         call.resolve();
     }
-
-    private static final String TAG_PERMISSION = "permission";
-
-    private static final String GRANTED = "granted";
-    private static final String DENIED = "denied";
-    private static final String ASKED = "asked";
-    private static final String NEVER_ASKED = "neverAsked";
-
-    private static final String PERMISSION_NAME = Manifest.permission.CAMERA;
-
-    private JSObject savedReturnObject;
 
     void _checkPermission(PluginCall call, boolean force) {
         this.savedReturnObject = new JSObject();
@@ -406,8 +433,6 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
         call.resolve(this.savedReturnObject);
     }
-
-    private static final String PREFS_PERMISSION_FIRST_TIME_ASKING = "PREFS_PERMISSION_FIRST_TIME_ASKING";
 
     private void setPermissionFirstTimeAsking(String permission, boolean isFirstTime) {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences(PREFS_PERMISSION_FIRST_TIME_ASKING, MODE_PRIVATE);

@@ -372,6 +372,13 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         self.scan()
     }
 
+    @objc func enableTorch(_ call: CAPPluginCall) {
+        call.resolve()
+    }
+    @objc func disableTorch(_ call: CAPPluginCall) {
+        call.resolve()
+    }
+
     @objc func stopScan(_ call: CAPPluginCall) {
         if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
             var jsObject = PluginCallResultData()

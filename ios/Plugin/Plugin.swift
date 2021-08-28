@@ -377,6 +377,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         call.resolve()
     }
 
+    @objc func enableTorch(_ call: CAPPluginCall) {
+        call.resolve()
+    }
+
+    @objc func disableTorch(_ call: CAPPluginCall) {
+        call.resolve()
+    }
+
     @objc func checkPermission(_ call: CAPPluginCall) {
         let force = call.getBool("force") ?? false
 

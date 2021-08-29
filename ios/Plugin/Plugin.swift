@@ -378,37 +378,35 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func enableTorch(_ call: CAPPluginCall) {
-        guard 
-            let device = AVCaptureDevice.default(for: AVMediaType.video),
-            device.hasTorch
-        else { return }
+        // swift 5 answer from https://stackoverflow.com/questions/27207278/how-to-turn-flashlight-on-and-off-in-swift/27334447
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard device.hasTorch else { print("Torch isn't available"); return }
 
         do {
             try device.lockForConfiguration()
             device.torchMode = .on
+            // Optional thing you may want when the torch it's on, is to manipulate the level of the torch
+            if on { try device.setTorchModeOn(level: AVCaptureDevice.maxAvailableTorchLevel.significand) }
             device.unlockForConfiguration()
         } catch {
-            print("Torch could not be used")
+            print("Torch can't be used")
         }
-
         call.resolve()
     }
 
     @objc func disableTorch(_ call: CAPPluginCall) {
         // DRY I know
-        guard 
-            let device = AVCaptureDevice.default(for: AVMediaType.video),
-            device.hasTorch
-        else { return }
+        // swift 5 answer from https://stackoverflow.com/questions/27207278/how-to-turn-flashlight-on-and-off-in-swift/27334447
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard device.hasTorch else { print("Torch isn't available"); return }
 
         do {
             try device.lockForConfiguration()
             device.torchMode = .off
             device.unlockForConfiguration()
         } catch {
-            print("Torch could not be used")
+            print("Torch can't be used")
         }
-
         call.resolve()
     }
 

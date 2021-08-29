@@ -378,10 +378,37 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     @objc func enableTorch(_ call: CAPPluginCall) {
+        guard 
+            let device = AVCaptureDevice.default(for: AVMediaType.video),
+            device.hasTorch
+        else { return }
+
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = .on
+            device.unlockForConfiguration()
+        } catch {
+            print("Torch could not be used")
+        }
+
         call.resolve()
     }
 
     @objc func disableTorch(_ call: CAPPluginCall) {
+        // DRY I know
+        guard 
+            let device = AVCaptureDevice.default(for: AVMediaType.video),
+            device.hasTorch
+        else { return }
+
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = .off
+            device.unlockForConfiguration()
+        } catch {
+            print("Torch could not be used")
+        }
+
         call.resolve()
     }
 

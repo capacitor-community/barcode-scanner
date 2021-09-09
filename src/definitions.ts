@@ -11,6 +11,7 @@ export interface BarcodeScannerPlugin {
   enableTorch(): Promise<void>;
   disableTorch(): Promise<void>;
   toggleTorch(): Promise<void>;
+  getTorchState(): Promise<TorchStateResult>;
 }
 
 export enum SupportedFormat {
@@ -179,4 +180,11 @@ export interface CheckPermissionResult {
    * @since 1.0.0
    */
   unknown?: boolean;
+}
+
+export interface TorchStateResult {
+  /**
+   * Whether or not the torch is currently enabled.
+   */
+  isEnabled: boolean;
 }

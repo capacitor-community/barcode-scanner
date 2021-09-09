@@ -7,6 +7,7 @@ import type {
   CheckPermissionOptions,
   CheckPermissionResult,
   StopScanOptions,
+  TorchStateResult,
 } from './definitions';
 
 export class BarcodeScannerWeb
@@ -51,6 +52,10 @@ export class BarcodeScannerWeb
   }
 
   toggleTorch(): Promise<void> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  getTorchState(): Promise<TorchStateResult> {
     throw this.unimplemented('Not implemented on web.');
   }
 }

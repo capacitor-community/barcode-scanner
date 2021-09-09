@@ -523,4 +523,13 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         this.setTorch(!this.isTorchOn);
         call.resolve();
     }
+
+    @PluginMethod
+    public void getTorchState(PluginCall call) {
+        JSObject result = new JSObject();
+
+        result.put("isEnabled", this.isTorchOn);
+
+        call.resolve(result);
+    }
 }

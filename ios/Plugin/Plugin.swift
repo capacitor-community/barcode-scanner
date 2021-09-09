@@ -485,4 +485,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             self.enableTorch(call)
         }
     }
+    
+    @objc func getTorchState(_ call: CAPPluginCall) {
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        
+        var result = PluginCallResultData();
+        
+        result["isEnabled"] = device.torchMode == .on;
+        
+        call.resolve(result)
+    }
 }

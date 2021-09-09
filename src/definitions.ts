@@ -8,6 +8,9 @@ export interface BarcodeScannerPlugin {
     options?: CheckPermissionOptions,
   ): Promise<CheckPermissionResult>;
   openAppSettings(): Promise<void>;
+  enableTorch(): Promise<void>;
+  disableTorch(): Promise<void>;
+  toggleTorch(): Promise<void>;
 }
 
 export enum SupportedFormat {

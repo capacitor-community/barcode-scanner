@@ -174,6 +174,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         showBackground();
 
         dismantleCamera();
+        this.setTorch(false);
     }
 
     private void configureCamera() {

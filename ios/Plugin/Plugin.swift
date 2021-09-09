@@ -442,19 +442,21 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         do {
             try device.lockForConfiguration()
-            
+
             do {
                 try device.setTorchModeOn(level: 1.0)
             } catch {
                 print(error)
             }
-            
+
             device.unlockForConfiguration()
         } catch {
             print(error)
         }
+
+        call.resolve()
     }
-    
+
     @objc func disableTorch(_ call: CAPPluginCall) {
         guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
         guard device.hasTorch else { return }
@@ -463,18 +465,20 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         do {
             try device.lockForConfiguration()
             device.torchMode = .off
-            
+
             device.unlockForConfiguration()
         } catch {
             print(error)
         }
+
+        call.resolve()
     }
-    
+
     @objc func toggleTorch(_ call: CAPPluginCall) {
         guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
         guard device.hasTorch else { return }
         guard device.isTorchAvailable else { return }
-        
+
         if (device.torchMode == .on) {
             self.disableTorch(call)
         } else {

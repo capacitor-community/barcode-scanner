@@ -462,12 +462,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         do {
             try device.lockForConfiguration()
-            
-            do {
-                try device.torchMode = .off
-            } catch {
-                print(error)
-            }
+            device.torchMode = .off
             
             device.unlockForConfiguration()
         } catch {
@@ -481,9 +476,9 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         guard device.isTorchAvailable else { return }
         
         if (device.torchMode == .on) {
-            self.disableTorch(call);
+            self.disableTorch(call)
         } else {
-            self.enableTorch(call);
+            self.enableTorch(call)
         }
     }
 }

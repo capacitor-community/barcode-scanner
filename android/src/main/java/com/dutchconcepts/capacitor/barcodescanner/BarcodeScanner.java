@@ -474,8 +474,9 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
         if (force != null && force) {
             _checkPermission(call, true);
+        }else{
+            _checkPermission(call, false);
         }
-        _checkPermission(call, false);
     }
 
     @PluginMethod

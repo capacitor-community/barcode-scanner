@@ -252,13 +252,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     private func scan() {
         if (!self.didRunCameraPrepare) {
-            if (!self.hasCameraPermission()) {
+            //In iOS 14 don't identify permissions needed, so force to ask it's better than nothing.
+            //if (!self.hasCameraPermission()) {
                 // @TODO()
                 // requestPermission()
-            } else {
+            //} else {
                 self.shouldRunScan = true
                 self.prepare()
-            }
+            //}
         } else {
             self.didRunCameraPrepare = false
 

@@ -352,9 +352,18 @@ const checkPermission = async () => {
 
 You can setup the scanner to only recognize specific types of barcodes like this:
 
-`BarcodeScanner.startScan({ targetedFormats: ['QR_CODE'] })`
+```ts
+import { BarcodeScanner, SupportedFormat } from '@capacitor-community/barcode-scanner';
+
+BarcodeScanner.startScan({ targetedFormats: [SupportedFormat.QR_CODE] }); // this will now only target QR-codes
+```
 
 If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
+
+Targeting only specific types can have the following benefits:
+
+- Improved performance (since the decoder only has to look for the specified barcodes)
+- Improved User Experience (since scanning a barcode that is not supported by your case, will not work)
 
 The following types are supported:
 

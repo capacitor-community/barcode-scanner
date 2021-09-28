@@ -138,7 +138,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         do {
             cameraView.backgroundColor = UIColor.clear
             self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
-            let availableVideoDevices =  AVCaptureDevice.devices(for: AVMediaType.video)
+            
+            let availableVideoDevices =  discoverCaptureDevices()
             for device in availableVideoDevices {
                 if device.position == AVCaptureDevice.Position.back {
                     backCamera = device
@@ -172,6 +173,15 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             //
         }
         return false
+    }
+    
+    @available(swift, deprecated: 5.6, message: "New Xcode? Check if `AVCaptureDevice.DeviceType` has new types and add them accordingly.")
+    private func discoverCaptureDevices() -> [AVCaptureDevice] {
+        if #available(iOS 13.0, *) {
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera, .builtInUltraWideCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+        } else {
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+        }
     }
 
     private func createCaptureDeviceInput() throws -> AVCaptureDeviceInput {

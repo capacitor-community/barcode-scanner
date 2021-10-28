@@ -133,7 +133,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         return false;
     }
 
-    private func setupCamera(cameraDirection: String = "back") -> Bool {
+    private func setupCamera(cameraDirection: String? = "back") -> Bool {
         do {
             var cameraDir = cameraDirection
             cameraView.backgroundColor = UIColor.clear
@@ -184,13 +184,13 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @available(swift, deprecated: 5.6, message: "New Xcode? Check if `AVCaptureDevice.DeviceType` has new types and add them accordingly.")
     private func discoverCaptureDevices() -> [AVCaptureDevice] {
         if #available(iOS 13.0, *) {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera, .builtInUltraWideCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera, .builtInUltraWideCamera, .builtInDualWideCamera, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
         } else {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified).devices
         }
     }
 
-    private func createCaptureDeviceInput(cameraDirection: String = "back") throws -> AVCaptureDeviceInput {
+    private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
         var captureDevice: AVCaptureDevice
         if(cameraDirection == "back"){
             if(backCamera != nil){
@@ -247,7 +247,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         DispatchQueue.main.async {
             // setup camera with new config
-            if (self.setupCamera(cameraDirection: call?.options["cameraDirection"])) {
+            if (self.setupCamera(cameraDirection: call?.getString("cameraDirection") ?? "back")) {
                 // indicate this method was run
                 self.didRunCameraPrepare = true
 

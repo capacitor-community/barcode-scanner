@@ -67,6 +67,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     var savedCall: CAPPluginCall? = nil
     var scanningPaused: Bool = false
+    var lastScanResult: String? = nil
 
     enum SupportedFormat: String, CaseIterable {
         // 1D Product
@@ -356,7 +357,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
             if (savedCall != nil) {
                 if (savedCall!.keepAlive) {
-                    if (!scanningPaused) {
+                    if (!scanningPaused && found.stringValue != lastScanResult ) {
+                        lastScanResult = found.stringValue
                         savedCall!.resolve(jsObject)
                     }
                 } else {

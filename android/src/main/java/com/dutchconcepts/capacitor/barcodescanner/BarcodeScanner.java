@@ -56,6 +56,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
     private boolean scanningPaused = false;
+    private String lastScanResult = null;
 
     // declare a map constant for allowed barcode formats
     private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
@@ -294,7 +295,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
         if (call != null) {
             if (call.isKeptAlive()) {
-                if (!scanningPaused) {
+                if (!scanningPaused && barcodeResult.getText() != null && !barcodeResult.getText().equals(lastScanResult)) {
+                    lastScanResult = barcodeResult.getText();
                     call.resolve(jsObject);
                 }
             } else {
@@ -347,9 +349,10 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         scan();
     }
 
-    @PluginMethod
+    @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
     public void startScanning(PluginCall call) {
         call.setKeepAlive(true);
+        lastScanResult = null; // reset when scanning again
         saveCall(call);
         scanningPaused = false;
         scan();

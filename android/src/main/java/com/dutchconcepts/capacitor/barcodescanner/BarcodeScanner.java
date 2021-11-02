@@ -55,6 +55,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
+    private boolean scanningPaused = false;
 
     // declare a map constant for allowed barcode formats
     private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
@@ -240,7 +241,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                 .runOnUiThread(
                     () -> {
                         if (mBarcodeView != null) {
-                            mBarcodeView.decodeSingle(b);
+                            PluginCall call = getSavedCall();
+                            if (call != null && call.isKeptAlive()) {
+                                mBarcodeView.decodeContinuous(b);
+                            } else {
+                                mBarcodeView.decodeSingle(b);
+                            }
                         }
                     }
                 );
@@ -284,11 +290,20 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             jsObject.put("hasContent", false);
         }
 
-        if (getSavedCall() != null) {
-            getSavedCall().resolve(jsObject);
-        }
+        PluginCall call = getSavedCall();
 
-        destroy();
+        if (call != null) {
+            if (call.isKeptAlive()) {
+                if (!scanningPaused) {
+                    call.resolve(jsObject);
+                }
+            } else {
+                call.resolve(jsObject);
+                destroy();
+            }
+        } else {
+            destroy();
+        }
     }
 
     @Override
@@ -330,6 +345,26 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     public void startScan(PluginCall call) {
         saveCall(call);
         scan();
+    }
+
+    @PluginMethod
+    public void startScanning(PluginCall call) {
+        call.setKeepAlive(true);
+        saveCall(call);
+        scanningPaused = false;
+        scan();
+    }
+
+    @PluginMethod
+    public void pauseScanning(PluginCall call) {
+        scanningPaused = true;
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void resumeScanning(PluginCall call) {
+        scanningPaused = false;
+        call.resolve();
     }
 
     @PluginMethod
@@ -476,7 +511,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             _checkPermission(call, true);
         } else {
             _checkPermission(call, false);
-        }   
+        }
     }
 
     @PluginMethod

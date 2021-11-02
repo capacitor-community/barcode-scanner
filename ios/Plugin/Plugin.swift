@@ -394,8 +394,9 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     @objc func startScanning(_ call: CAPPluginCall) {
         self.savedCall = call
-        self.savedCall?.keepAlive = true;
+        self.savedCall?.keepAlive = true
         scanningPaused = false
+        lastScanResult = nil
         self.scan()
     }
 

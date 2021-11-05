@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+//import android.graphics.Camera;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Build;
@@ -48,7 +49,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private BarcodeView mBarcodeView;
 
-    private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    //private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
 
     private boolean isScanning = false;
     private boolean shouldRunScan = false;
@@ -93,7 +94,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
     }
 
-    private void setupCamera() {
+    private void setupCamera(String cameraDirection) {
         // @TODO(): add support for switching cameras
         // @TODO(): add support for toggling torch
 
@@ -105,7 +106,9 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
                     // Configure the camera (front/back)
                     CameraSettings settings = new CameraSettings();
-                    settings.setRequestedCameraId(currentCameraId);
+                    settings.setRequestedCameraId(
+                        "front".equals(cameraDirection) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK
+                    );
                     settings.setContinuousFocusEnabled(true);
                     mBarcodeView.setCameraSettings(settings);
 
@@ -153,13 +156,13 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
     }
 
-    private void prepare() {
+    private void _prepare(PluginCall call) {
         // undo previous setup
         // because it may be prepared with a different config
         dismantleCamera();
 
         // setup camera with new config
-        setupCamera();
+        setupCamera(call.getString("cameraDirection", "back"));
 
         // indicate this method was run
         didRunCameraPrepare = true;
@@ -225,7 +228,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     Log.d("scanner", "No permission to use camera. Did you request it yet?");
                 } else {
                     shouldRunScan = true;
-                    prepare();
+                    _prepare(getSavedCall());
                 }
             }
         } else {
@@ -310,7 +313,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void prepare(PluginCall call) {
-        prepare();
+        _prepare(call);
         call.resolve();
     }
 
@@ -476,7 +479,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             _checkPermission(call, true);
         } else {
             _checkPermission(call, false);
-        }   
+        }
     }
 
     @PluginMethod

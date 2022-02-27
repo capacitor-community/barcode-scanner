@@ -55,6 +55,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
+    private boolean isTorchOn = false;
 
     // declare a map constant for allowed barcode formats
     private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
@@ -171,8 +172,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private void destroy() {
         showBackground();
-
         dismantleCamera();
+        this.setTorch(false);
     }
 
     private void configureCamera() {
@@ -490,5 +491,46 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     @ActivityCallback
     private void openSettingsResult(PluginCall call, ActivityResult result) {
         call.resolve();
+    }
+
+    private void setTorch(boolean on) {
+        if (on != isTorchOn) {
+            isTorchOn = on;
+            getActivity()
+                .runOnUiThread(
+                    () -> {
+                        if (mBarcodeView != null) {
+                            mBarcodeView.setTorch(on);
+                        }
+                    }
+                );
+        }
+    }
+
+    @PluginMethod
+    public void enableTorch(PluginCall call) {
+        this.setTorch(true);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void disableTorch(PluginCall call) {
+        this.setTorch(false);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void toggleTorch(PluginCall call) {
+        this.setTorch(!this.isTorchOn);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void getTorchState(PluginCall call) {
+        JSObject result = new JSObject();
+
+        result.put("isEnabled", this.isTorchOn);
+
+        call.resolve(result);
     }
 }

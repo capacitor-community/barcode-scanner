@@ -1,8 +1,15 @@
+export type CallbackID = string;
 export interface BarcodeScannerPlugin {
   prepare(): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
   startScan(options?: ScanOptions): Promise<ScanResult>;
+  startScanning(
+    options?: ScanOptions,
+    callback?: (result: ScanResult, err?: any) => void,
+  ): Promise<CallbackID>;
+  pauseScanning(): Promise<void>;
+  resumeScanning(): Promise<void>;
   stopScan(options?: StopScanOptions): Promise<void>;
   checkPermission(
     options?: CheckPermissionOptions,

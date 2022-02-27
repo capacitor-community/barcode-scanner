@@ -56,6 +56,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     private boolean didRunCameraPrepare = false;
     private boolean isBackgroundHidden = false;
     private boolean isTorchOn = false;
+    private boolean scanningPaused = false;
+    private String lastScanResult = null;
 
     // declare a map constant for allowed barcode formats
     private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
@@ -241,7 +243,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                 .runOnUiThread(
                     () -> {
                         if (mBarcodeView != null) {
-                            mBarcodeView.decodeSingle(b);
+                            PluginCall call = getSavedCall();
+                            if (call != null && call.isKeptAlive()) {
+                                mBarcodeView.decodeContinuous(b);
+                            } else {
+                                mBarcodeView.decodeSingle(b);
+                            }
                         }
                     }
                 );
@@ -286,11 +293,21 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             jsObject.put("hasContent", false);
         }
 
-        if (getSavedCall() != null) {
-            getSavedCall().resolve(jsObject);
-        }
+        PluginCall call = getSavedCall();
 
-        destroy();
+        if (call != null) {
+            if (call.isKeptAlive()) {
+                if (!scanningPaused && barcodeResult.getText() != null && !barcodeResult.getText().equals(lastScanResult)) {
+                    lastScanResult = barcodeResult.getText();
+                    call.resolve(jsObject);
+                }
+            } else {
+                call.resolve(jsObject);
+                destroy();
+            }
+        } else {
+            destroy();
+        }
     }
 
     @Override
@@ -347,6 +364,27 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
 
         destroy();
+        call.resolve();
+    }
+
+    @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+    public void startScanning(PluginCall call) {
+        call.setKeepAlive(true);
+        lastScanResult = null; // reset when scanning again
+        saveCall(call);
+        scanningPaused = false;
+        scan();
+    }
+
+    @PluginMethod
+    public void pauseScanning(PluginCall call) {
+        scanningPaused = true;
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void resumeScanning(PluginCall call) {
+        scanningPaused = false;
         call.resolve();
     }
 

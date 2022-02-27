@@ -118,6 +118,13 @@ export interface ScanResult {
    * @since 1.0.0
    */
   content?: string;
+
+  /**
+   * This returns format of scan result.
+   *
+   * @since 2.1.0
+   */
+  format?: string;
 }
 
 export interface CheckPermissionOptions {

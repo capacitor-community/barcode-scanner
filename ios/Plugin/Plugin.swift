@@ -349,6 +349,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             if (found.stringValue != nil) {
                 jsObject["hasContent"] = true
                 jsObject["content"] = found.stringValue
+                jsObject["format"] = formatStringFromMetadata(found.type)
             } else {
                 jsObject["hasContent"] = false
             }
@@ -361,6 +362,39 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             self.destroy()
         }
     }
+
+    private func formatStringFromMetadata(_ type: AVMetadataObject.ObjectType) -> String {
+            switch type {
+            case AVMetadataObject.ObjectType.upce:
+                return "UPC_E";
+            case AVMetadataObject.ObjectType.ean8:
+                return "EAN_8";
+            case AVMetadataObject.ObjectType.ean13:
+                return "EAN_13";
+            case AVMetadataObject.ObjectType.code39:
+                return "CODE_39";
+            case AVMetadataObject.ObjectType.code39Mod43:
+                return "CODE_39_MOD_43";
+            case AVMetadataObject.ObjectType.code93:
+                return "CODE_93";
+            case AVMetadataObject.ObjectType.code128:
+                return "CODE_128";
+            case AVMetadataObject.ObjectType.interleaved2of5:
+                return "ITF";
+            case AVMetadataObject.ObjectType.itf14:
+                return "ITF_14";
+            case AVMetadataObject.ObjectType.aztec:
+                return "AZTEC";
+            case AVMetadataObject.ObjectType.dataMatrix:
+                return "DATA_MATRIX";
+            case AVMetadataObject.ObjectType.pdf417:
+                return "PDF_417";
+            case AVMetadataObject.ObjectType.qr:
+                return "QR_CODE";
+            default:
+                return type.rawValue
+            }
+        }
 
     @objc func prepare(_ call: CAPPluginCall) {
         self.prepare()

@@ -27,9 +27,10 @@
 
 ## Maintainers
 
-| Maintainer | GitHub                                | Social |
+| Maintainer | GitHub                                | Active |
 | ---------- | ------------------------------------- | ------ |
-| tafelnl    | [tafelnl](https://github.com/tafelnl) |        |
+| thegnuu    | [thegnuu](https://github.com/thegnuu) | yes    |
+| tafelnl    | [tafelnl](https://github.com/tafelnl) | no     |
 
 ## About
 
@@ -353,7 +354,10 @@ const checkPermission = async () => {
 You can setup the scanner to only recognize specific types of barcodes like this:
 
 ```ts
-import { BarcodeScanner, SupportedFormat } from '@capacitor-community/barcode-scanner';
+import {
+  BarcodeScanner,
+  SupportedFormat,
+} from '@capacitor-community/barcode-scanner';
 
 BarcodeScanner.startScan({ targetedFormats: [SupportedFormat.QR_CODE] }); // this will now only target QR-codes
 ```

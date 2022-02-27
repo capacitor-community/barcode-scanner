@@ -136,8 +136,9 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         return false
     }
 
-    private func setupCamera() -> Bool {
+    private func setupCamera(cameraDirection: String? = "back") -> Bool {
         do {
+            var cameraDir = cameraDirection
             cameraView.backgroundColor = UIColor.clear
             self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
             
@@ -151,11 +152,17 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 }
             }
             // older iPods have no back camera
-            if(backCamera == nil){
-                currentCamera = 1
+            if (cameraDir == "back") {
+                if (backCamera == nil) {
+                    cameraDir = "front"
+                }
+            } else {
+                if (frontCamera == nil) {
+                    cameraDir = "back"
+                }
             }
             let input: AVCaptureDeviceInput
-            input = try self.createCaptureDeviceInput()
+            input = try self.createCaptureDeviceInput(cameraDirection: cameraDir)
             captureSession = AVCaptureSession()
             captureSession!.addInput(input)
             metaOutput = AVCaptureMetadataOutput()
@@ -180,15 +187,15 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @available(swift, deprecated: 5.6, message: "New Xcode? Check if `AVCaptureDevice.DeviceType` has new types and add them accordingly.")
     private func discoverCaptureDevices() -> [AVCaptureDevice] {
         if #available(iOS 13.0, *) {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera, .builtInUltraWideCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera, .builtInUltraWideCamera, .builtInDualWideCamera, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
         } else {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .front).devices
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified).devices
         }
     }
 
-    private func createCaptureDeviceInput() throws -> AVCaptureDeviceInput {
+    private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
         var captureDevice: AVCaptureDevice
-        if(currentCamera == 0){
+        if(cameraDirection == "back"){
             if(backCamera != nil){
                 captureDevice = backCamera!
             } else {
@@ -220,7 +227,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.captureVideoPreviewLayer = nil
                 self.metaOutput = nil
                 self.captureSession = nil
-                self.currentCamera = 0
                 self.frontCamera = nil
                 self.backCamera = nil
             }
@@ -236,14 +242,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
     }
 
-    private func prepare() {
+    private func prepare(_ call: CAPPluginCall? = nil) {
         // undo previous setup
         // because it may be prepared with a different config
         self.dismantleCamera()
 
         DispatchQueue.main.async {
             // setup camera with new config
-            if (self.setupCamera()) {
+            if (self.setupCamera(cameraDirection: call?.getString("cameraDirection") ?? "back")) {
                 // indicate this method was run
                 self.didRunCameraPrepare = true
 
@@ -269,7 +275,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 // requestPermission()
             } else {
                 self.shouldRunScan = true
-                self.prepare()
+                self.prepare(savedCall)
             }
         } else {
             self.didRunCameraPrepare = false

@@ -1,6 +1,6 @@
 export type CallbackID = string;
 export interface BarcodeScannerPlugin {
-  prepare(): Promise<void>;
+  prepare(options?: ScanOptions): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
   startScan(options?: ScanOptions): Promise<ScanResult>;
@@ -91,6 +91,11 @@ export enum SupportedFormat {
   // END 2D
 }
 
+export enum CameraDirection {
+  FRONT = 'front',
+  BACK = 'back',
+}
+
 export interface ScanOptions {
   /**
    * This parameter can be used to make the scanner only recognize specific types of barcodes.
@@ -99,6 +104,12 @@ export interface ScanOptions {
    * @since 1.2.0
    */
   targetedFormats?: SupportedFormat[];
+  /**
+   * This parameter can be used to set the camera direction.
+   *
+   * @since 2.1.0
+   */
+  cameraDirection?: CameraDirection;
 }
 
 export interface StopScanOptions {

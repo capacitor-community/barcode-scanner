@@ -17,10 +17,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git"
+    "url": "git+https://github.com/capacitor-community/barcode-scanner.git"
   },
   "bugs": {
-    "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner/issues"
+    "url": "https://github.com/capacitor-community/barcode-scanner/issues"
   },
   "keywords": [
     "capacitor",
@@ -84,7 +84,7 @@
       "pre-commit": "npx pretty-quick --staged"
     }
   },
-  "homepage": "https://github.com/DutchConcepts/capacitor-barcode-scanner#readme",
+  "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
   "directories": {
     "example": "examples"
   },

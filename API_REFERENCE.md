@@ -4,10 +4,13 @@ Below is an index of all the methods available.
 
 <docgen-index>
 
-- [`prepare()`](#prepare)
+- [`prepare(...)`](#prepare)
 - [`hideBackground()`](#hidebackground)
 - [`showBackground()`](#showbackground)
 - [`startScan(...)`](#startscan)
+- [`startScanning(...)`](#startscanning)
+- [`pauseScanning()`](#pausescanning)
+- [`resumeScanning()`](#resumescanning)
 - [`stopScan(...)`](#stopscan)
 - [`checkPermission(...)`](#checkpermission)
 - [`openAppSettings()`](#openappsettings)
@@ -16,6 +19,7 @@ Below is an index of all the methods available.
 - [`toggleTorch()`](#toggletorch)
 - [`getTorchState()`](#gettorchstate)
 - [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
 - [Enums](#enums)
 
 </docgen-index>
@@ -23,11 +27,15 @@ Below is an index of all the methods available.
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### prepare()
+### prepare(...)
 
 ```typescript
-prepare() => Promise<void>
+prepare(options?: ScanOptions | undefined) => Promise<void>
 ```
+
+| Param         | Type                                                |
+| ------------- | --------------------------------------------------- |
+| **`options`** | <code><a href="#scanoptions">ScanOptions</a></code> |
 
 ---
 
@@ -58,6 +66,37 @@ startScan(options?: ScanOptions | undefined) => Promise<ScanResult>
 | **`options`** | <code><a href="#scanoptions">ScanOptions</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#scanresult">ScanResult</a>&gt;</code>
+
+---
+
+### startScanning(...)
+
+```typescript
+startScanning(options?: ScanOptions | undefined, callback?: ((result: ScanResult, err?: any) => void) | undefined) => Promise<CallbackID>
+```
+
+| Param          | Type                                                                                |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **`options`**  | <code><a href="#scanoptions">ScanOptions</a></code>                                 |
+| **`callback`** | <code>((result: <a href="#scanresult">ScanResult</a>, err?: any) =&gt; void)</code> |
+
+**Returns:** <code>Promise&lt;string&gt;</code>
+
+---
+
+### pauseScanning()
+
+```typescript
+pauseScanning() => Promise<void>
+```
+
+---
+
+### resumeScanning()
+
+```typescript
+resumeScanning() => Promise<void>
+```
 
 ---
 
@@ -131,6 +170,13 @@ getTorchState() => Promise<TorchStateResult>
 
 ### Interfaces
 
+#### ScanOptions
+
+| Prop                  | Type                                                        | Description                                                                                                                                                                                  | Since |
+| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`targetedFormats`** | <code>SupportedFormat[]</code>                              | This parameter can be used to make the scanner only recognize specific types of barcodes. If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted. | 1.2.0 |
+| **`cameraDirection`** | <code><a href="#cameradirection">CameraDirection</a></code> | This parameter can be used to set the camera direction.                                                                                                                                      | 2.1.0 |
+
 #### ScanResult
 
 | Prop             | Type                 | Description                                                                                                                                                                                                         | Since |
@@ -138,12 +184,6 @@ getTorchState() => Promise<TorchStateResult>
 | **`hasContent`** | <code>boolean</code> | This indicates whether or not the scan resulted in readable content. When stopping the scan with `resolveScan` set to `true`, for example, this parameter is set to `false`, because no actual content was scanned. | 1.0.0 |
 | **`content`**    | <code>string</code>  | This holds the content of the barcode if available.                                                                                                                                                                 | 1.0.0 |
 | **`format`**     | <code>string</code>  | This returns format of scan result.                                                                                                                                                                                 | 2.1.0 |
-
-#### ScanOptions
-
-| Prop                  | Type                           | Description                                                                                                                                                                                  | Since |
-| --------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| **`targetedFormats`** | <code>SupportedFormat[]</code> | This parameter can be used to make the scanner only recognize specific types of barcodes. If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted. | 1.2.0 |
 
 #### StopScanOptions
 
@@ -174,6 +214,12 @@ getTorchState() => Promise<TorchStateResult>
 | --------------- | -------------------- | ---------------------------------------------- |
 | **`isEnabled`** | <code>boolean</code> | Whether or not the torch is currently enabled. |
 
+### Type Aliases
+
+#### CallbackID
+
+<code>string</code>
+
 ### Enums
 
 #### SupportedFormat
@@ -199,5 +245,12 @@ getTorchState() => Promise<TorchStateResult>
 | **`QR_CODE`**           | <code>'QR_CODE'</code>           |                                                               |
 | **`RSS_14`**            | <code>'RSS_14'</code>            | Android only                                                  |
 | **`RSS_EXPANDED`**      | <code>'RSS_EXPANDED'</code>      | Android only                                                  |
+
+#### CameraDirection
+
+| Members     | Value                |
+| ----------- | -------------------- |
+| **`FRONT`** | <code>'front'</code> |
+| **`BACK`**  | <code>'back'</code>  |
 
 </docgen-api>

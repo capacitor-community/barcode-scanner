@@ -1,96 +1,113 @@
-export type CallbackID = string;
+import type { PermissionState } from '@capacitor/core';
+
+export type CameraPermissionState = PermissionState;
 export interface BarcodeScannerPlugin {
-  prepare(options?: ScanOptions): Promise<void>;
-  hideBackground(): Promise<void>;
-  showBackground(): Promise<void>;
-  startScan(options?: ScanOptions): Promise<ScanResult>;
-  startScanning(
+  // TODO: I am not sure if this will make sense anymore in the ML Kit version
+  // prepare(options?: ScanOptions): Promise<void>;
+
+  // TODO: should be handled internally by the plugin and not be exposed to the user
+  // hideBackground(): Promise<void>;
+  // showBackground(): Promise<void>;
+
+  // related to scanning
+  /**
+   * Start scanning for barcodes
+   *
+   * @since 3.0.0
+   */
+  start(
     options?: ScanOptions,
     callback?: (result: ScanResult, err?: any) => void,
   ): Promise<CallbackID>;
-  pauseScanning(): Promise<void>;
-  resumeScanning(): Promise<void>;
-  stopScan(options?: StopScanOptions): Promise<void>;
-  checkPermission(
-    options?: CheckPermissionOptions,
-  ): Promise<CheckPermissionResult>;
-  openAppSettings(): Promise<void>;
+
+  /**
+   * Pause scanning for barcodes
+   *
+   * @since 3.0.0
+   */
+  pause(): Promise<void>;
+
+  /**
+   * Resume paused scanning for barcodes
+   *
+   * @since 3.0.0
+   */
+  resume(): Promise<void>;
+
+  /**
+   * Stop scanning for barcodes
+   *
+   * @since 3.0.0
+   */
+  stop(): Promise<void>;
+
+  // related to permissions
+  /**
+   * Check camera permissions
+   *
+   * @since 3.0.0
+   */
+  checkPermissions(): Promise<CameraPermissionState>;
+
+  /**
+   * Request camera permissions
+   *
+   * @since 3.0.0
+   */
+  requestPermissions(): Promise<CameraPermissionState>;
+
+  // TODO: is this required for anything?
+  // openAppSettings(): Promise<void>;
+
+  // related to torch
+  /**
+   * Enables torch
+   *
+   * @since 3.0.0
+   */
   enableTorch(): Promise<void>;
+
+  /**
+   * Disables torch
+   *
+   * @since 3.0.0
+   */
   disableTorch(): Promise<void>;
+
+  /**
+   * Toggles torch
+   *
+   * @since 3.0.0
+   */
   toggleTorch(): Promise<void>;
+
+  /**
+   * Get current torch state
+   *
+   * @since 3.0.0
+   */
   getTorchState(): Promise<TorchStateResult>;
 }
 
-export enum SupportedFormat {
-  // BEGIN 1D Product
-  /**
-   * Android only, UPC_A is part of EAN_13 according to Apple docs
-   */
-  UPC_A = 'UPC_A',
+export type CallbackID = string;
 
-  UPC_E = 'UPC_E',
-
-  /**
-   * Android only
-   */
-  UPC_EAN_EXTENSION = 'UPC_EAN_EXTENSION',
-
-  EAN_8 = 'EAN_8',
-
-  EAN_13 = 'EAN_13',
-  // END 1D Product
-
-  // BEGIN 1D Industrial
-  CODE_39 = 'CODE_39',
-
-  /**
-   * iOS only
-   */
-  CODE_39_MOD_43 = 'CODE_39_MOD_43',
-
-  CODE_93 = 'CODE_93',
-
+export enum BarcodeFormat {
   CODE_128 = 'CODE_128',
-
-  /**
-   * Android only
-   */
-  CODABAR = 'CODABAR',
-
-  ITF = 'ITF',
-
-  /**
-   * iOS only
-   */
-  ITF_14 = 'ITF_14',
-  // END 1D Industrial
-
-  // BEGIN 2D
-  AZTEC = 'AZTEC',
-
+  CODE_39 = 'CODE_39',
+  CODE_93 = 'CODE_93',
+  CODA_BAR = 'CODA_BAR',
   DATA_MATRIX = 'DATA_MATRIX',
-
-  /**
-   * Android only
-   */
-  MAXICODE = 'MAXICODE',
-
-  PDF_417 = 'PDF_417',
-
+  EAN_13 = 'EAN_13',
+  EAN_8 = 'EAN_8',
+  ITF = 'ITF',
   QR_CODE = 'QR_CODE',
-
-  /**
-   * Android only
-   */
-  RSS_14 = 'RSS_14',
-
-  /**
-   * Android only
-   */
-  RSS_EXPANDED = 'RSS_EXPANDED',
-  // END 2D
+  UPC_A = 'UPC_A',
+  UPC_E = 'UPC_E',
+  PDF_417 = 'PDF_417',
+  AZTEC = 'AZTEC',
 }
 
+// TODO: Maybe it would make sense to rename this to CameraType and allow additional settings like "WIDE_ANGLE_CAMERA"?
 export enum CameraDirection {
   FRONT = 'front',
   BACK = 'back',
@@ -101,115 +118,50 @@ export interface ScanOptions {
    * This parameter can be used to make the scanner only recognize specific types of barcodes.
    *  If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
    *
-   * @since 1.2.0
+   * @since 3.0.0
    */
-  targetedFormats?: SupportedFormat[];
+  formats?: BarcodeFormat[];
   /**
    * This parameter can be used to set the camera direction.
    *
-   * @since 2.1.0
+   * @since 3.0.0
    */
   cameraDirection?: CameraDirection;
 }
 
-export interface StopScanOptions {
-  /**
-   * If this is set to `true`, the `startScan` method will resolve.
-   * Additionally `hasContent` will be `false`.
-   * For more information see: https://github.com/capacitor-community/barcode-scanner/issues/17
-   *
-   * @default true
-   * @since 2.1.0
-   */
-  resolveScan?: boolean;
-}
-
 export interface ScanResult {
   /**
-   * This indicates whether or not the scan resulted in readable content.
-   * When stopping the scan with `resolveScan` set to `true`, for example,
-   * this parameter is set to `false`, because no actual content was scanned.
+   * Content of the barcode
    *
-   * @since 1.0.0
+   * @since 3.0.0
    */
-  hasContent: boolean;
+  content: string;
 
   /**
-   * This holds the content of the barcode if available.
+   * Format of the scanned barcode
    *
-   * @since 1.0.0
+   * @since 3.0.0
    */
-  content?: string;
+  format: BarcodeFormat;
 
   /**
-   * This returns format of scan result.
+   * Position of the scanned barcode
    *
-   * @since 2.1.0
+   * @since 3.0.0
    */
-  format?: string;
-}
-
-export interface CheckPermissionOptions {
-  /**
-   * If this is set to `true`, the user will be prompted for the permission.
-   * The prompt will only show if the permission was not yet granted and also not denied completely yet.
-   * For more information see: https://github.com/capacitor-community/barcode-scanner#permissions
-   *
-   * @default false
-   * @since 1.0.0
-   */
-  force?: boolean;
-}
-
-export interface CheckPermissionResult {
-  /**
-   * When set to `true`, the ermission is granted.
-   */
-  granted?: boolean;
-
-  /**
-   * When set to `true`, the permission is denied and cannot be prompted for.
-   * The `openAppSettings` method should be used to let the user grant the permission.
-   *
-   * @since 1.0.0
-   */
-  denied?: boolean;
-
-  /**
-   * When this is set to `true`, the user was just prompted the permission.
-   * Ergo: a dialog, asking the user to grant the permission, was shown.
-   *
-   * @since 1.0.0
-   */
-  asked?: boolean;
-
-  /**
-   * When this is set to `true`, the user has never been prompted the permission.
-   *
-   * @since 1.0.0
-   */
-  neverAsked?: boolean;
-
-  /**
-   * iOS only
-   * When this is set to `true`, the permission cannot be requested for some reason.
-   *
-   * @since 1.0.0
-   */
-  restricted?: boolean;
-
-  /**
-   * iOS only
-   * When this is set to `true`, the permission status cannot be retrieved.
-   *
-   * @since 1.0.0
-   */
-  unknown?: boolean;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface TorchStateResult {
   /**
    * Whether or not the torch is currently enabled.
+   *
+   * @since 3.0.0
    */
   isEnabled: boolean;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@capacitor-community/barcode-scanner",
-  "version": "2.1.0-alpha.0",
+  "version": "2.1.0",
   "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
@@ -17,10 +17,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DutchConcepts/capacitor-barcode-scanner.git"
+    "url": "git+https://github.com/capacitor-community/barcode-scanner.git"
   },
   "bugs": {
-    "url": "https://github.com/DutchConcepts/capacitor-barcode-scanner/issues"
+    "url": "https://github.com/capacitor-community/barcode-scanner/issues"
   },
   "keywords": [
     "capacitor",
@@ -36,7 +36,11 @@
     "build": "npm run clean && tsc && rollup -c rollup.config.js",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepare": "npm run build",
+    "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
+    "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin -destination \"platform=iOS Simulator,name=iPhone 12\" && cd ..",
+    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "verify:web": "npm run build"
   },
   "devDependencies": {
     "@capacitor/android": "^3.0.0",
@@ -70,14 +74,17 @@
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",
   "eslintConfig": {
-    "extends": "@ionic/eslint-config/recommended"
+    "extends": "@ionic/eslint-config/recommended",
+    "ignorePatterns": [
+      "dist/**/*"
+    ]
   },
   "husky": {
     "hooks": {
       "pre-commit": "npx pretty-quick --staged"
     }
   },
-  "homepage": "https://github.com/DutchConcepts/capacitor-barcode-scanner#readme",
+  "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
   "directories": {
     "example": "examples"
   },

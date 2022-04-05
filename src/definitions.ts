@@ -1,13 +1,24 @@
+export type CallbackID = string;
 export interface BarcodeScannerPlugin {
-  prepare(): Promise<void>;
+  prepare(options?: ScanOptions): Promise<void>;
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
   startScan(options?: ScanOptions): Promise<ScanResult>;
+  startScanning(
+    options?: ScanOptions,
+    callback?: (result: ScanResult, err?: any) => void,
+  ): Promise<CallbackID>;
+  pauseScanning(): Promise<void>;
+  resumeScanning(): Promise<void>;
   stopScan(options?: StopScanOptions): Promise<void>;
   checkPermission(
     options?: CheckPermissionOptions,
   ): Promise<CheckPermissionResult>;
   openAppSettings(): Promise<void>;
+  enableTorch(): Promise<void>;
+  disableTorch(): Promise<void>;
+  toggleTorch(): Promise<void>;
+  getTorchState(): Promise<TorchStateResult>;
 }
 
 export enum SupportedFormat {
@@ -80,6 +91,11 @@ export enum SupportedFormat {
   // END 2D
 }
 
+export enum CameraDirection {
+  FRONT = 'front',
+  BACK = 'back',
+}
+
 export interface ScanOptions {
   /**
    * This parameter can be used to make the scanner only recognize specific types of barcodes.
@@ -88,11 +104,19 @@ export interface ScanOptions {
    * @since 1.2.0
    */
   targetedFormats?: SupportedFormat[];
-  screenSizes?: boolean; 
-  frameX?: number; 
-  frameY?: number; 
-  frameWidth?: number; 
-  frameHeight?: number; 
+
+  screenSizes?: boolean;
+  frameX?: number;
+  frameY?: number;
+  frameWidth?: number;
+  frameHeight?: number;
+
+  /**
+   * This parameter can be used to set the camera direction.
+   *
+   * @since 2.1.0
+   */
+  cameraDirection?: CameraDirection;
 }
 
 export interface StopScanOptions {
@@ -123,6 +147,13 @@ export interface ScanResult {
    * @since 1.0.0
    */
   content?: string;
+
+  /**
+   * This returns format of scan result.
+   *
+   * @since 2.1.0
+   */
+  format?: string;
 }
 
 export interface CheckPermissionOptions {
@@ -181,4 +212,11 @@ export interface CheckPermissionResult {
    * @since 1.0.0
    */
   unknown?: boolean;
+}
+
+export interface TorchStateResult {
+  /**
+   * Whether or not the torch is currently enabled.
+   */
+  isEnabled: boolean;
 }

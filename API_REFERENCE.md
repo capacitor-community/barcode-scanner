@@ -4,14 +4,22 @@ Below is an index of all the methods available.
 
 <docgen-index>
 
-- [`prepare()`](#prepare)
+- [`prepare(...)`](#prepare)
 - [`hideBackground()`](#hidebackground)
 - [`showBackground()`](#showbackground)
 - [`startScan(...)`](#startscan)
+- [`startScanning(...)`](#startscanning)
+- [`pauseScanning()`](#pausescanning)
+- [`resumeScanning()`](#resumescanning)
 - [`stopScan(...)`](#stopscan)
 - [`checkPermission(...)`](#checkpermission)
 - [`openAppSettings()`](#openappsettings)
+- [`enableTorch()`](#enabletorch)
+- [`disableTorch()`](#disabletorch)
+- [`toggleTorch()`](#toggletorch)
+- [`getTorchState()`](#gettorchstate)
 - [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
 - [Enums](#enums)
 
 </docgen-index>
@@ -19,11 +27,15 @@ Below is an index of all the methods available.
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### prepare()
+### prepare(...)
 
 ```typescript
-prepare() => Promise<void>
+prepare(options?: ScanOptions | undefined) => Promise<void>
 ```
+
+| Param         | Type                                                |
+| ------------- | --------------------------------------------------- |
+| **`options`** | <code><a href="#scanoptions">ScanOptions</a></code> |
 
 ---
 
@@ -54,6 +66,37 @@ startScan(options?: ScanOptions | undefined) => Promise<ScanResult>
 | **`options`** | <code><a href="#scanoptions">ScanOptions</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#scanresult">ScanResult</a>&gt;</code>
+
+---
+
+### startScanning(...)
+
+```typescript
+startScanning(options?: ScanOptions | undefined, callback?: ((result: ScanResult, err?: any) => void) | undefined) => Promise<CallbackID>
+```
+
+| Param          | Type                                                                                |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **`options`**  | <code><a href="#scanoptions">ScanOptions</a></code>                                 |
+| **`callback`** | <code>((result: <a href="#scanresult">ScanResult</a>, err?: any) =&gt; void)</code> |
+
+**Returns:** <code>Promise&lt;string&gt;</code>
+
+---
+
+### pauseScanning()
+
+```typescript
+pauseScanning() => Promise<void>
+```
+
+---
+
+### resumeScanning()
+
+```typescript
+resumeScanning() => Promise<void>
+```
 
 ---
 
@@ -91,7 +134,48 @@ openAppSettings() => Promise<void>
 
 ---
 
+### enableTorch()
+
+```typescript
+enableTorch() => Promise<void>
+```
+
+---
+
+### disableTorch()
+
+```typescript
+disableTorch() => Promise<void>
+```
+
+---
+
+### toggleTorch()
+
+```typescript
+toggleTorch() => Promise<void>
+```
+
+---
+
+### getTorchState()
+
+```typescript
+getTorchState() => Promise<TorchStateResult>
+```
+
+**Returns:** <code>Promise&lt;<a href="#torchstateresult">TorchStateResult</a>&gt;</code>
+
+---
+
 ### Interfaces
+
+#### ScanOptions
+
+| Prop                  | Type                                                        | Description                                                                                                                                                                                  | Since |
+| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`targetedFormats`** | <code>SupportedFormat[]</code>                              | This parameter can be used to make the scanner only recognize specific types of barcodes. If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted. | 1.2.0 |
+| **`cameraDirection`** | <code><a href="#cameradirection">CameraDirection</a></code> | This parameter can be used to set the camera direction.                                                                                                                                      | 2.1.0 |
 
 #### ScanResult
 
@@ -99,12 +183,7 @@ openAppSettings() => Promise<void>
 | ---------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
 | **`hasContent`** | <code>boolean</code> | This indicates whether or not the scan resulted in readable content. When stopping the scan with `resolveScan` set to `true`, for example, this parameter is set to `false`, because no actual content was scanned. | 1.0.0 |
 | **`content`**    | <code>string</code>  | This holds the content of the barcode if available.                                                                                                                                                                 | 1.0.0 |
-
-#### ScanOptions
-
-| Prop                  | Type                           | Description                                                                                                                                                                                  | Since |
-| --------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| **`targetedFormats`** | <code>SupportedFormat[]</code> | This parameter can be used to make the scanner only recognize specific types of barcodes. If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted. | 1.2.0 |
+| **`format`**     | <code>string</code>  | This returns format of scan result.                                                                                                                                                                                 | 2.1.0 |
 
 #### StopScanOptions
 
@@ -128,6 +207,18 @@ openAppSettings() => Promise<void>
 | Prop        | Type                 | Description                                                                                                                                                                                                                                                              | Default            | Since |
 | ----------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ | ----- |
 | **`force`** | <code>boolean</code> | If this is set to `true`, the user will be prompted for the permission. The prompt will only show if the permission was not yet granted and also not denied completely yet. For more information see: https://github.com/capacitor-community/barcode-scanner#permissions | <code>false</code> | 1.0.0 |
+
+#### TorchStateResult
+
+| Prop            | Type                 | Description                                    |
+| --------------- | -------------------- | ---------------------------------------------- |
+| **`isEnabled`** | <code>boolean</code> | Whether or not the torch is currently enabled. |
+
+### Type Aliases
+
+#### CallbackID
+
+<code>string</code>
 
 ### Enums
 
@@ -154,5 +245,12 @@ openAppSettings() => Promise<void>
 | **`QR_CODE`**           | <code>'QR_CODE'</code>           |                                                               |
 | **`RSS_14`**            | <code>'RSS_14'</code>            | Android only                                                  |
 | **`RSS_EXPANDED`**      | <code>'RSS_EXPANDED'</code>      | Android only                                                  |
+
+#### CameraDirection
+
+| Members     | Value                |
+| ----------- | -------------------- |
+| **`FRONT`** | <code>'front'</code> |
+| **`BACK`**  | <code>'back'</code>  |
 
 </docgen-api>

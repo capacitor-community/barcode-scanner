@@ -11,27 +11,27 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         func interfaceOrientationToVideoOrientation(_ orientation : UIInterfaceOrientation) -> AVCaptureVideoOrientation {
             switch (orientation) {
             case UIInterfaceOrientation.portrait:
-                return AVCaptureVideoOrientation.portrait;
+                return AVCaptureVideoOrientation.portrait
             case UIInterfaceOrientation.portraitUpsideDown:
-                return AVCaptureVideoOrientation.portraitUpsideDown;
+                return AVCaptureVideoOrientation.portraitUpsideDown
             case UIInterfaceOrientation.landscapeLeft:
-                return AVCaptureVideoOrientation.landscapeLeft;
+                return AVCaptureVideoOrientation.landscapeLeft
             case UIInterfaceOrientation.landscapeRight:
-                return AVCaptureVideoOrientation.landscapeRight;
+                return AVCaptureVideoOrientation.landscapeRight
             default:
-                return AVCaptureVideoOrientation.portraitUpsideDown;
+                return AVCaptureVideoOrientation.portraitUpsideDown
             }
         }
 
         override func layoutSubviews() {
-            super.layoutSubviews();
+            super.layoutSubviews()
             if let sublayers = self.layer.sublayers {
                 for layer in sublayers {
-                    layer.frame = self.bounds;
+                    layer.frame = self.bounds
                 }
             }
 
-            self.videoPreviewLayer?.connection?.videoOrientation = interfaceOrientationToVideoOrientation(UIApplication.shared.statusBarOrientation);
+            self.videoPreviewLayer?.connection?.videoOrientation = interfaceOrientationToVideoOrientation(UIApplication.shared.statusBarOrientation)
         }
 
 
@@ -39,7 +39,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             previewLayer!.videoGravity = AVLayerVideoGravity.resizeAspectFill
             previewLayer!.frame = self.bounds
             self.layer.addSublayer(previewLayer!)
-            self.videoPreviewLayer = previewLayer;
+            self.videoPreviewLayer = previewLayer
         }
 
         func removePreviewLayer() {
@@ -55,7 +55,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var captureVideoPreviewLayer:AVCaptureVideoPreviewLayer?
     var metaOutput: AVCaptureMetadataOutput?
 
-    var currentCamera: Int = 0;
+    var currentCamera: Int = 0
     var frontCamera: AVCaptureDevice?
     var backCamera: AVCaptureDevice?
 
@@ -66,6 +66,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var isBackgroundHidden: Bool = false
 
     var savedCall: CAPPluginCall? = nil
+    var scanningPaused: Bool = false
+    var lastScanResult: String? = nil
 
     var frameX: Int = 0;
     var frameY: Int = 0;
@@ -128,7 +130,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     public override func load() {
         self.cameraView = CameraView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-        self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight];
+        self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
 
     private func hasCameraPermission() -> Bool {
@@ -136,14 +138,16 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         if (status == AVAuthorizationStatus.authorized) {
             return true
         }
-        return false;
+        return false
     }
 
-    private func setupCamera() -> Bool {
+    private func setupCamera(cameraDirection: String? = "back") -> Bool {
         do {
+            var cameraDir = cameraDirection
             cameraView.backgroundColor = UIColor.clear
             self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
-            let availableVideoDevices =  AVCaptureDevice.devices(for: AVMediaType.video)
+            
+            let availableVideoDevices =  discoverCaptureDevices()
             for device in availableVideoDevices {
                 if device.position == AVCaptureDevice.Position.back {
                     backCamera = device
@@ -153,11 +157,17 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 }
             }
             // older iPods have no back camera
-            if(backCamera == nil){
-                currentCamera = 1
+            if (cameraDir == "back") {
+                if (backCamera == nil) {
+                    cameraDir = "front"
+                }
+            } else {
+                if (frontCamera == nil) {
+                    cameraDir = "back"
+                }
             }
             let input: AVCaptureDeviceInput
-            input = try self.createCaptureDeviceInput()
+            input = try self.createCaptureDeviceInput(cameraDirection: cameraDir)
             captureSession = AVCaptureSession()
             captureSession!.addInput(input)
             metaOutput = AVCaptureMetadataOutput()
@@ -179,9 +189,18 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         return false
     }
 
-    private func createCaptureDeviceInput() throws -> AVCaptureDeviceInput {
+    @available(swift, deprecated: 5.6, message: "New Xcode? Check if `AVCaptureDevice.DeviceType` has new types and add them accordingly.")
+    private func discoverCaptureDevices() -> [AVCaptureDevice] {
+        if #available(iOS 13.0, *) {
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera, .builtInUltraWideCamera, .builtInDualWideCamera, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
+        } else {
+            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified).devices
+        }
+    }
+
+    private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
         var captureDevice: AVCaptureDevice
-        if(currentCamera == 0){
+        if(cameraDirection == "back"){
             if(backCamera != nil){
                 captureDevice = backCamera!
             } else {
@@ -213,7 +232,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.captureVideoPreviewLayer = nil
                 self.metaOutput = nil
                 self.captureSession = nil
-                self.currentCamera = 0
                 self.frontCamera = nil
                 self.backCamera = nil
             }
@@ -229,7 +247,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
     }
 
-    private func prepare() {
+    private func prepare(_ call: CAPPluginCall? = nil) {
         // undo previous setup
         // because it may be prepared with a different config
         self.dismantleCamera()
@@ -245,7 +263,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         DispatchQueue.main.async {
             // setup camera with new config
-            if (self.setupCamera()) {
+            if (self.setupCamera(cameraDirection: call?.getString("cameraDirection") ?? "back")) {
                 // indicate this method was run
                 self.didRunCameraPrepare = true
 
@@ -266,12 +284,15 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     private func scan() {
         if (!self.didRunCameraPrepare) {
-            if (!self.hasCameraPermission()) {
+            //In iOS 14 don't identify permissions needed, so force to ask it's better than nothing. Provisional.
+            var iOS14min: Bool = false
+            if #available(iOS 14.0, *) { iOS14min = true; }
+            if (!self.hasCameraPermission() && !iOS14min) {
                 // @TODO()
                 // requestPermission()
             } else {
                 self.shouldRunScan = true
-                self.prepare()
+                self.prepare(savedCall)
             }
         } else {
             self.didRunCameraPrepare = false
@@ -281,7 +302,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             targetedFormats = [AVMetadataObject.ObjectType]();
 
             if ((savedCall?.options["targetedFormats"]) != nil) {
-                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self);
+                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self)
 
                 if (_targetedFormats != nil && _targetedFormats?.count ?? 0 > 0) {
                     _targetedFormats?.forEach { targetedFormat in
@@ -353,18 +374,60 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             if (found.stringValue != nil) {
                 jsObject["hasContent"] = true
                 jsObject["content"] = found.stringValue
+                jsObject["format"] = formatStringFromMetadata(found.type)
             } else {
                 jsObject["hasContent"] = false
             }
 
-            if (self.savedCall != nil) {
-                savedCall?.resolve(jsObject)
-                savedCall = nil
+            if (savedCall != nil) {
+                if (savedCall!.keepAlive) {
+                    if (!scanningPaused && found.stringValue != lastScanResult ) {
+                        lastScanResult = found.stringValue
+                        savedCall!.resolve(jsObject)
+                    }
+                } else {
+                    savedCall!.resolve(jsObject)
+                    savedCall = nil
+                    destroy()
+                }
+            } else {
+                self.destroy()
             }
-
-            self.destroy()
         }
     }
+
+    private func formatStringFromMetadata(_ type: AVMetadataObject.ObjectType) -> String {
+            switch type {
+            case AVMetadataObject.ObjectType.upce:
+                return "UPC_E"
+            case AVMetadataObject.ObjectType.ean8:
+                return "EAN_8"
+            case AVMetadataObject.ObjectType.ean13:
+                return "EAN_13"
+            case AVMetadataObject.ObjectType.code39:
+                return "CODE_39"
+            case AVMetadataObject.ObjectType.code39Mod43:
+                return "CODE_39_MOD_43"
+            case AVMetadataObject.ObjectType.code93:
+                return "CODE_93"
+            case AVMetadataObject.ObjectType.code128:
+                return "CODE_128"
+            case AVMetadataObject.ObjectType.interleaved2of5:
+                return "ITF"
+            case AVMetadataObject.ObjectType.itf14:
+                return "ITF_14"
+            case AVMetadataObject.ObjectType.aztec:
+                return "AZTEC"
+            case AVMetadataObject.ObjectType.dataMatrix:
+                return "DATA_MATRIX"
+            case AVMetadataObject.ObjectType.pdf417:
+                return "PDF_417"
+            case AVMetadataObject.ObjectType.qr:
+                return "QR_CODE"
+            default:
+                return type.rawValue
+            }
+        }
 
     @objc func prepare(_ call: CAPPluginCall) {
         self.prepare()
@@ -384,6 +447,24 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     @objc func startScan(_ call: CAPPluginCall) {
         self.savedCall = call
         self.scan()
+    }
+
+    @objc func startScanning(_ call: CAPPluginCall) {
+        self.savedCall = call
+        self.savedCall?.keepAlive = true
+        scanningPaused = false
+        lastScanResult = nil
+        self.scan()
+    }
+
+    @objc func pauseScanning(_ call: CAPPluginCall) {
+        scanningPaused = true
+        call.resolve()
+    }
+
+    @objc func resumeScanning(_ call: CAPPluginCall) {
+        scanningPaused = false
+        call.resolve()
     }
 
     @objc func stopScan(_ call: CAPPluginCall) {
@@ -439,6 +520,67 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
               })
           }
       }
+    }
+
+      @objc func enableTorch(_ call: CAPPluginCall) {
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard device.hasTorch else { return }
+        guard device.isTorchAvailable else { return }
+
+        do {
+            try device.lockForConfiguration()
+
+            do {
+                try device.setTorchModeOn(level: 1.0)
+            } catch {
+                print(error)
+            }
+
+            device.unlockForConfiguration()
+        } catch {
+            print(error)
+        }
+
+        call.resolve()
+    }
+
+    @objc func disableTorch(_ call: CAPPluginCall) {
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard device.hasTorch else { return }
+        guard device.isTorchAvailable else { return }
+
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = .off
+
+            device.unlockForConfiguration()
+        } catch {
+            print(error)
+        }
+
+        call.resolve()
+    }
+
+    @objc func toggleTorch(_ call: CAPPluginCall) {
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard device.hasTorch else { return }
+        guard device.isTorchAvailable else { return }
+
+        if (device.torchMode == .on) {
+            self.disableTorch(call)
+        } else {
+            self.enableTorch(call)
+        }
+    }
+
+    @objc func getTorchState(_ call: CAPPluginCall) {
+        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+
+        var result = PluginCallResultData()
+
+        result["isEnabled"] = device.torchMode == .on
+
+        call.resolve(result)
     }
 
 }

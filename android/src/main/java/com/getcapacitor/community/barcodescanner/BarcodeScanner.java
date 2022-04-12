@@ -385,6 +385,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     @PluginMethod
     public void resumeScanning(PluginCall call) {
+        lastScanResult = null; // reset when scanning again
         scanningPaused = false;
         call.resolve();
     }

@@ -285,10 +285,18 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     @Override
     public void barcodeResult(BarcodeResult barcodeResult) {
         JSObject jsObject = new JSObject();
+		String addon = "";
+        if(barcodeResult != null &&  barcodeResult.getResultMetadata() != null) {
+          Map<ResultMetadataType, Object> resultMetadata = barcodeResult.getResultMetadata();
+
+          if(resultMetadata.containsKey(ResultMetadataType.UPC_EAN_EXTENSION)) {
+            addon = (String) resultMetadata.get(ResultMetadataType.UPC_EAN_EXTENSION);
+          }
+        }
 
         if (barcodeResult.getText() != null) {
             jsObject.put("hasContent", true);
-            jsObject.put("content", barcodeResult.getText());
+            jsObject.put("content", barcodeResult.getText() + addon);
             jsObject.put("format", barcodeResult.getBarcodeFormat().name());
         } else {
             jsObject.put("hasContent", false);

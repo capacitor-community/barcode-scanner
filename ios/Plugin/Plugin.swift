@@ -361,6 +361,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 jsObject["hasContent"] = true
                 jsObject["content"] = found.stringValue
                 jsObject["format"] = formatStringFromMetadata(found.type)
+                jsObject["resultPoints"] = found.corners // TODO
             } else {
                 jsObject["hasContent"] = false
             }

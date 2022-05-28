@@ -147,6 +147,13 @@ export interface ScanResult {
    * @since 2.1.0
    */
   format?: string;
+
+  /**
+   * This returns points of interest in an image containing a barcode.
+   *
+   * @since 2.2.0
+   */
+  resultPoints?: ResultPoint[]; // TODO
 }
 
 export interface CheckPermissionOptions {
@@ -212,4 +219,16 @@ export interface TorchStateResult {
    * Whether or not the torch is currently enabled.
    */
   isEnabled: boolean;
+}
+
+export interface ResultPoint { // TODO
+  /**
+   * X coordinate of a point of interest in an image containing a barcode.
+   */
+  x: number;
+  
+   /**
+   * Y coordinate of a point of interest in an image containing a barcode.
+   */
+  y: number;
 }

@@ -1,9 +1,11 @@
 import Capacitor
 import Foundation
 import AVFoundation
+import MLKitVision
+import MLKitBarcodeScanning
 
-@objc(BarcodeScanner)
-public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
+@objc(CapacitorBarcodeScanner)
+public class CapacitorBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutputSampleBufferDelegate {
 
     class CameraView: UIView {
         var videoPreviewLayer:AVCaptureVideoPreviewLayer?
@@ -58,6 +60,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var currentCamera: Int = 0
     var frontCamera: AVCaptureDevice?
     var backCamera: AVCaptureDevice?
+    var barcodeScanner: BarcodeScanner?
 
     var isScanning: Bool = false
     var shouldRunScan: Bool = false
@@ -161,13 +164,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                     cameraDir = "back"
                 }
             }
+            self.barcodeScanner = BarcodeScanner.barcodeScanner()
             let input: AVCaptureDeviceInput
             input = try self.createCaptureDeviceInput(cameraDirection: cameraDir)
             captureSession = AVCaptureSession()
             captureSession!.addInput(input)
-            metaOutput = AVCaptureMetadataOutput()
-            captureSession!.addOutput(metaOutput!)
-            metaOutput!.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+            // metaOutput = AVCaptureMetadataOutput()
+            // captureSession!.addOutput(metaOutput!)
+            // metaOutput!.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
             self.didRunCameraSetup = true
@@ -345,42 +349,62 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
     }
 
-    // This method processes metadataObjects captured by iOS.
-    public func metadataOutput(_ captureOutput: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-
-        if (metadataObjects.count == 0 || !self.isScanning) {
-            // while nothing is detected, or if scanning is false, do nothing.
-            return
-        }
-
-        let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-        if (targetedFormats.contains(found.type)) {
-            var jsObject = PluginCallResultData()
-
-            if (found.stringValue != nil) {
-                jsObject["hasContent"] = true
-                jsObject["content"] = found.stringValue
-                jsObject["format"] = formatStringFromMetadata(found.type)
-            } else {
-                jsObject["hasContent"] = false
-            }
-
-            if (savedCall != nil) {
-                if (savedCall!.keepAlive) {
-                    if (!scanningPaused && found.stringValue != lastScanResult ) {
-                        lastScanResult = found.stringValue
-                        savedCall!.resolve(jsObject)
-                    }
-                } else {
-                    savedCall!.resolve(jsObject)
-                    savedCall = nil
-                    destroy()
+    public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        
+        if let barcodeScanner = self.barcodeScanner {
+            
+            let visionImage = VisionImage(buffer: sampleBuffer)
+            barcodeScanner.process(visionImage) { features, error in
+              guard error == nil, let features = features, !features.isEmpty else {
+                  // print(error)
+                return
+              }
+              // Recognized barcodes
+                for barcode in features {
+                    print(barcode.rawValue!)
+                     // self.barCodeRawValueLabel.text = barcode.rawValue!
                 }
-            } else {
-                self.destroy()
             }
+            
         }
     }
+
+    // // This method processes metadataObjects captured by iOS.
+    // public func metadataOutput(_ captureOutput: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+
+    //     if (metadataObjects.count == 0 || !self.isScanning) {
+    //         // while nothing is detected, or if scanning is false, do nothing.
+    //         return
+    //     }
+
+    //     let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+    //     if (targetedFormats.contains(found.type)) {
+    //         var jsObject = PluginCallResultData()
+
+    //         if (found.stringValue != nil) {
+    //             jsObject["hasContent"] = true
+    //             jsObject["content"] = found.stringValue
+    //             jsObject["format"] = formatStringFromMetadata(found.type)
+    //         } else {
+    //             jsObject["hasContent"] = false
+    //         }
+
+    //         if (savedCall != nil) {
+    //             if (savedCall!.keepAlive) {
+    //                 if (!scanningPaused && found.stringValue != lastScanResult ) {
+    //                     lastScanResult = found.stringValue
+    //                     savedCall!.resolve(jsObject)
+    //                 }
+    //             } else {
+    //                 savedCall!.resolve(jsObject)
+    //                 savedCall = nil
+    //                 destroy()
+    //             }
+    //         } else {
+    //             self.destroy()
+    //         }
+    //     }
+    // }
 
     private func formatStringFromMetadata(_ type: AVMetadataObject.ObjectType) -> String {
             switch type {
@@ -415,27 +439,27 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             }
         }
 
-    @objc func prepare(_ call: CAPPluginCall) {
-        self.prepare()
-        call.resolve()
-    }
+    // @objc func prepare(_ call: CAPPluginCall) {
+    //     self.prepare()
+    //     call.resolve()
+    // }
 
-    @objc func hideBackground(_ call: CAPPluginCall) {
-        self.hideBackground()
-        call.resolve()
-    }
+    // @objc func hideBackground(_ call: CAPPluginCall) {
+    //     self.hideBackground()
+    //     call.resolve()
+    // }
 
-    @objc func showBackground(_ call: CAPPluginCall) {
-        self.showBackground()
-        call.resolve()
-    }
+    // @objc func showBackground(_ call: CAPPluginCall) {
+    //     self.showBackground()
+    //     call.resolve()
+    // }
 
-    @objc func startScan(_ call: CAPPluginCall) {
-        self.savedCall = call
-        self.scan()
-    }
+    // @objc func startScan(_ call: CAPPluginCall) {
+    //     self.savedCall = call
+    //     self.scan()
+    // }
 
-    @objc func startScanning(_ call: CAPPluginCall) {
+    @objc func start(_ call: CAPPluginCall) {
         self.savedCall = call
         self.savedCall?.keepAlive = true
         scanningPaused = false
@@ -443,17 +467,17 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         self.scan()
     }
 
-    @objc func pauseScanning(_ call: CAPPluginCall) {
+    @objc func pause(_ call: CAPPluginCall) {
         scanningPaused = true
         call.resolve()
     }
 
-    @objc func resumeScanning(_ call: CAPPluginCall) {
+    @objc func resume(_ call: CAPPluginCall) {
         scanningPaused = false
         call.resolve()
     }
 
-    @objc func stopScan(_ call: CAPPluginCall) {
+    @objc func stop(_ call: CAPPluginCall) {
         if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
             var jsObject = PluginCallResultData()
             jsObject["hasContent"] = false

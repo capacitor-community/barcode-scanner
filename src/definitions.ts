@@ -92,19 +92,21 @@ export interface BarcodeScannerPlugin {
 export type CallbackID = string;
 
 export enum BarcodeFormat {
-  CODE_128 = 'CODE_128',
-  CODE_39 = 'CODE_39',
-  CODE_93 = 'CODE_93',
-  CODA_BAR = 'CODA_BAR',
-  DATA_MATRIX = 'DATA_MATRIX',
-  EAN_13 = 'EAN_13',
-  EAN_8 = 'EAN_8',
-  ITF = 'ITF',
-  QR_CODE = 'QR_CODE',
-  UPC_A = 'UPC_A',
-  UPC_E = 'UPC_E',
-  PDF_417 = 'PDF_417',
-  AZTEC = 'AZTEC',
+  UNKNOWN = 0,
+  ALL = 0xffff,
+  CODE_128 = 0x0001,
+  CODE_39 = 0x0002,
+  CODE_93 = 0x0004,
+  CODA_BAR = 0x0008,
+  DATA_MATRIX = 0x0010,
+  EAN_13 = 0x0020,
+  EAN_8 = 0x0040,
+  ITF = 0x0080,
+  QR_CODE = 0x0100,
+  UPC_A = 0x0200,
+  UPC_E = 0x0400,
+  PDF_417 = 0x0800,
+  AZTEC = 0x1000,
 }
 
 // TODO: Maybe it would make sense to rename this to CameraType and allow additional settings like "WIDE_ANGLE_CAMERA"?
@@ -115,12 +117,12 @@ export enum CameraDirection {
 
 export interface ScanOptions {
   /**
-   * This parameter can be used to make the scanner only recognize specific types of barcodes.
-   *  If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
+   * This parameter can be used to make the scanner only recognize a specific type of barcode.
+   *  If `format` is not specified or left empty, all types of barcodes will be targeted.
    *
    * @since 3.0.0
    */
-  formats?: BarcodeFormat[];
+  format?: BarcodeFormat;
   /**
    * This parameter can be used to set the camera direction.
    *

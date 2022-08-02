@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <Capacitor/Capacitor.h>
 
-CAP_PLUGIN(CapacitorBarcodeScanner, "CapacitorBarcodeScanner",
+CAP_PLUGIN(CapacitorCommunityBarcodeScanner, "CapacitorCommunityBarcodeScanner",
     // CAP_PLUGIN_METHOD(prepare, CAPPluginReturnPromise);
     //CAP_PLUGIN_METHOD(hideBackground, CAPPluginReturnPromise);
     // CAP_PLUGIN_METHOD(showBackground, CAPPluginReturnPromise);

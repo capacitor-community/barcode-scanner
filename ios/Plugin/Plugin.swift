@@ -124,7 +124,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     public override func load() {
-        self.cameraView = CameraView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+        self.cameraView = CameraView(frame: CGRect(x: 200, y: 200, width: 300, height: 300))
         self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
 

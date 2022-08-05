@@ -110,6 +110,11 @@ export interface ScanOptions {
    * @since 2.1.0
    */
   cameraDirection?: CameraDirection;
+  /**
+   * This parameter can be used to set the camera view frame.
+   *
+   */
+  scanViewOfInterest?: ScanViewOfInterest;
 }
 
 export interface StopScanOptions {
@@ -212,4 +217,11 @@ export interface TorchStateResult {
    * Whether or not the torch is currently enabled.
    */
   isEnabled: boolean;
+}
+
+export interface ScanViewOfInterest {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }

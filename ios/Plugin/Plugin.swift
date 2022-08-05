@@ -6,7 +6,7 @@ import AVFoundation
 public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     class CameraView: UIView {
-        var videoPreviewLayer:AVCaptureVideoPreviewLayer?
+        var videoPreviewLayer: AVCaptureVideoPreviewLayer?
 
         func interfaceOrientationToVideoOrientation(_ orientation : UIInterfaceOrientation) -> AVCaptureVideoOrientation {
             switch (orientation) {
@@ -35,9 +35,10 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
 
 
-        func addPreviewLayer(_ previewLayer:AVCaptureVideoPreviewLayer?) {
+        func addPreviewLayer(_ previewLayer: AVCaptureVideoPreviewLayer?) {
             previewLayer!.videoGravity = AVLayerVideoGravity.resizeAspectFill
-            previewLayer!.frame = self.bounds
+            previewLayer!.frame =  CGRect(x: (UIScreen.main.bounds.width - 400) / 2, y: (UIScreen.main.bounds.height - 100) / 2, width: 400, height: 100)
+            // create UIView that will server as a red square to indicate where to place QRCode for scanning
             self.layer.addSublayer(previewLayer!)
             self.videoPreviewLayer = previewLayer
         }
@@ -124,7 +125,12 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     public override func load() {
-        self.cameraView = CameraView(frame: CGRect(x: 200, y: 200, width: 300, height: 300))
+        self.cameraView = CameraView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+        let scanAreaView = UIView()
+        scanAreaView.layer.borderColor = UIColor.red.cgColor
+        scanAreaView.layer.borderWidth = 4
+        scanAreaView.frame = CGRect(x: 0, y: 0, width: 300, height: 200)
+        self.cameraView.didAddSubview(scanAreaView)
         self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
 
@@ -313,6 +319,9 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
             DispatchQueue.main.async {
                 self.metaOutput!.metadataObjectTypes = self.targetedFormats
+                if let rect = self.captureVideoPreviewLayer?.rectOfInterestConverted(parentRect: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), fromLayerRect: self.cameraView.frame) {
+                    self.metaOutput!.rectOfInterest = rect
+                 }
                 self.captureSession!.startRunning()
             }
 
@@ -579,4 +588,17 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         call.resolve(result)
     }
 
+}
+
+extension AVCaptureVideoPreviewLayer {
+    func rectOfInterestConverted(parentRect: CGRect, fromLayerRect: CGRect) -> CGRect {
+        let parentWidth = parentRect.width
+        let parentHeight = parentRect.height
+        let newX = (parentWidth - fromLayerRect.maxX)/parentWidth
+        let newY = 1 - (parentHeight - fromLayerRect.minY)/parentHeight
+        let width = 1 - (fromLayerRect.minX/parentWidth + newX)
+        let height = (fromLayerRect.maxY/parentHeight) - newY
+
+        return CGRect(x: newX, y: newY, width: width, height: height)
+    }
 }

@@ -313,10 +313,14 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             }
 
             DispatchQueue.main.async {
-                let x = self.savedCall?.getInt("xLine") ?? 0
+                let x = self.savedCall?.getInt("positionx") ?? 0
                 let y = self.savedCall?.getInt("yLine") ?? 0
                 let width = self.savedCall?.getInt("width")
                 let height = self.savedCall?.getInt("height")
+                print(x)
+                print(y)
+                print(width)
+                print(height)
                 self.metaOutput!.metadataObjectTypes = self.targetedFormats
                 if let rect = self.captureVideoPreviewLayer?.rectOfInterestConverted(
                     parentRect: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height),

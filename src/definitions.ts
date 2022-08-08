@@ -114,8 +114,8 @@ export interface ScanOptions {
    * This parameter can be used to set the camera view frame.
    *
    */
-  x: number;
-  y: number;
+  xLine: number;
+  yLine: number;
   width: number;
   height: number;
 }

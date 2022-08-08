@@ -313,8 +313,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             }
 
             DispatchQueue.main.async {
-                let x = self.savedCall?.getInt("x") ?? 0
-                let y = self.savedCall?.getInt("y") ?? 0
+                let x = self.savedCall?.getInt("xLine") ?? 0
+                let y = self.savedCall?.getInt("yLine") ?? 0
                 let width = self.savedCall?.getInt("width")
                 let height = self.savedCall?.getInt("height")
                 self.metaOutput!.metadataObjectTypes = self.targetedFormats

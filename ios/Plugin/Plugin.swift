@@ -37,7 +37,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         func addPreviewLayer(_ previewLayer: AVCaptureVideoPreviewLayer?) {
             previewLayer!.videoGravity = AVLayerVideoGravity.resizeAspectFill
-            previewLayer!.frame =  CGRect(x: (UIScreen.main.bounds.width - 400) / 2, y: (UIScreen.main.bounds.height - 100) / 2, width: 400, height: 100)
+            previewLayer!.frame = self.bounds
             // create UIView that will server as a red square to indicate where to place QRCode for scanning
             self.layer.addSublayer(previewLayer!)
             self.videoPreviewLayer = previewLayer
@@ -126,11 +126,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     public override func load() {
         self.cameraView = CameraView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-        let scanAreaView = UIView()
-        scanAreaView.layer.borderColor = UIColor.red.cgColor
-        scanAreaView.layer.borderWidth = 4
-        scanAreaView.frame = CGRect(x: 0, y: 0, width: 300, height: 200)
-        self.cameraView.didAddSubview(scanAreaView)
         self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     }
 
@@ -318,8 +313,12 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             }
 
             DispatchQueue.main.async {
+                let scanViewOfInterest = self.savedCall?.getObject("scanViewOfInterest")
                 self.metaOutput!.metadataObjectTypes = self.targetedFormats
-                if let rect = self.captureVideoPreviewLayer?.rectOfInterestConverted(parentRect: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), fromLayerRect: self.cameraView.frame) {
+                if let rect = self.captureVideoPreviewLayer?.rectOfInterestConverted(
+                    parentRect: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height),
+                    fromLayerRect: CGRect(x: scanViewOfInterest.x ?? 0, y: scanViewOfInterest.y ?? 0, width: scanViewOfInterest.width ?? UIScreen.main.bounds.width, height: scanViewOfInterest.height ?? UIScreen.main.bounds.height)
+                ) {
                     self.metaOutput!.rectOfInterest = rect
                  }
                 self.captureSession!.startRunning()

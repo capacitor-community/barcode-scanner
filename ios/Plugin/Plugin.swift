@@ -280,7 +280,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 DispatchQueue.main.async {
                     self.load();
                     self.shouldRunScan = true
-                    self.prepare(savedCall)
+                    self.prepare(self.savedCall)
                 } 
             }
         } else {

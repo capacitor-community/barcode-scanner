@@ -277,9 +277,11 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 // @TODO()
                 // requestPermission()
             } else {
-                self.load();
-                self.shouldRunScan = true
-                self.prepare(savedCall)
+                DispatchQueue.main.async {
+                    self.load();
+                    self.shouldRunScan = true
+                    self.prepare(savedCall)
+                } 
             }
         } else {
             self.didRunCameraPrepare = false

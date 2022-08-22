@@ -27,6 +27,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.ResultMetadataType;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.client.android.Intents;
 import com.journeyapps.barcodescanner.BarcodeCallback;
@@ -34,7 +35,12 @@ import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.BarcodeView;
 import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.journeyapps.barcodescanner.camera.CameraSettings;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -282,13 +288,41 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             );
     }
 
+    private boolean isPrintableString(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            byte val = bytes[i];
+            if (val <= 32 || val >= 127) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void barcodeResult(BarcodeResult barcodeResult) {
         JSObject jsObject = new JSObject();
 
+        String resString = "";
+
+        //BYTE_SEGMENT[0] contains the decoded bytes from the qr.
+        Map<ResultMetadataType, Object> md = barcodeResult.getResultMetadata();
+        Object res = md.get(ResultMetadataType.BYTE_SEGMENTS);
+        if (res != null) {
+            List byteSegments = (ArrayList) res;
+            byte[] segment = (byte[]) byteSegments.get(0);
+            if (isPrintableString(segment)) {
+                resString = barcodeResult.getText();
+                Log.d("scanner", "Printable string detected");
+            } else {
+                String bytesAsString = Base64.getEncoder().encodeToString(segment);
+                resString = bytesAsString.toString();
+                Log.d("scanner", "Binary data, encoding to base64");
+            }
+        }
+
         if (barcodeResult.getText() != null) {
             jsObject.put("hasContent", true);
-            jsObject.put("content", barcodeResult.getText());
+            jsObject.put("content", resString);
             jsObject.put("format", barcodeResult.getBarcodeFormat().name());
         } else {
             jsObject.put("hasContent", false);

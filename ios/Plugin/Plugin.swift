@@ -1,6 +1,7 @@
 import Capacitor
 import Foundation
 import AVFoundation
+import OSLog
 
 @objc(BarcodeScanner)
 public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
@@ -194,6 +195,18 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
+        if #available(OSX 11.0, *) {
+            if #available(iOS 14.0, *) {
+                let customLog = Logger(subsystem: "technology.truevolve.scrutineer",
+                                       category: "scanner log")
+                customLog.debug("Using custom code!")
+            } else {
+                // Fallback on earlier versions
+            }
+            
+        }
+
+
         var captureDevice: AVCaptureDevice
         if(cameraDirection == "back"){
             if(backCamera != nil){
@@ -360,12 +373,34 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         if (targetedFormats.contains(found.type)) {
             var jsObject = PluginCallResultData()
 
-            if (found.stringValue != nil) {
-                jsObject["hasContent"] = true
-                jsObject["content"] = found.stringValue
-                jsObject["format"] = formatStringFromMetadata(found.type)
-            } else {
-                jsObject["hasContent"] = false
+            if (found.type == AVMetadataObject.ObjectType.qr){
+                let qrCodeDescriptor = found.descriptor as? CIQRCodeDescriptor
+                
+                // if string value is nil, either there is nothing there, or its bytes
+                if (found.stringValue == nil) {
+                    if let rawBytes = qrCodeDescriptor?.errorCorrectedPayload {
+                        //raw bytes needs to be processed to get the actual qr code message
+                        jsObject["hasContent"] = true
+                        jsObject["content"] = rawBytes.base64EncodedString()
+                        jsObject["format"] = formatStringFromMetadata(found.type)
+                    } else {
+                        jsObject["hasContent"] = false
+                    }
+                } else {
+                    // if string value is not nil, then use it
+                    jsObject["hasContent"] = true
+                    jsObject["content"] = found.stringValue
+                    jsObject["format"] = formatStringFromMetadata(found.type)
+                }
+            } else {    
+                // not a QR code
+                if (found.stringValue != nil) {
+                    jsObject["hasContent"] = true
+                    jsObject["content"] = found.stringValue
+                    jsObject["format"] = formatStringFromMetadata(found.type)
+                } else {
+                    jsObject["hasContent"] = false
+                }
             }
 
             if (savedCall != nil) {

@@ -304,6 +304,11 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
         String resString = "";
 
+        //debug
+        byte[] raw = barcodeResult.getRawBytes();
+        String rawAsString = Base64.getEncoder().encodeToString(raw);
+        Log.d("scanner", rawAsString);
+
         //BYTE_SEGMENT[0] contains the decoded bytes from the qr.
         Map<ResultMetadataType, Object> md = barcodeResult.getResultMetadata();
         Object res = md.get(ResultMetadataType.BYTE_SEGMENTS);

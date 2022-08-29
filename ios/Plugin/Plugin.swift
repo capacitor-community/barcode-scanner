@@ -349,6 +349,52 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         }
     }
 
+    private let supportedModes: [Mode] = [.structuredAppend, .byte, .endOfMessage]
+
+    private func decode(_ binary: inout Binary, stringVal: inout String, symbolVersion: Int) {
+        let modeBitsLength = 4
+        guard binary.bitsWithInternalOffsetAvailable(modeBitsLength) else { return }
+
+        let modeBits = binary.next(bits: modeBitsLength)
+        guard let mode = Mode(rawValue: modeBits),
+            supportedModes.contains(mode) else {
+            print("Error")
+            return
+        }
+
+        print(mode.description)
+        guard mode != .endOfMessage else { return }
+
+        if case .structuredAppend = mode {
+            let symbolPosition = binary.next(bits: 4)
+            let totalSymbols = binary.next(bits: 4)
+            let parity = binary.next(bits: 8)
+            print("Total: \(totalSymbols + 1), Position: \(symbolPosition + 1). Parity: \(parity).\n\n")
+        } else if case .byte = mode {
+            guard let numberOfBitsInLengthFiled = mode.numberOfBitsInLengthFiled(for: symbolVersion),
+                let numberOfBitsPerCharacter = mode.numberOfBitsPerCharacter else { return }
+            let totalCharacterCount = binary.next(bits: numberOfBitsInLengthFiled)
+            var bytes: [UInt8] = []
+            for _ in 0..<totalCharacterCount {
+                let byte = binary.next(bits: numberOfBitsPerCharacter)
+                bytes.append(UInt8(byte))
+            }
+            let binAsData = Data(bytes)
+            
+            stringVal = stringVal + binAsData.base64EncodedString()
+            print(stringVal)
+        }
+
+        decode(&binary, stringVal: &stringVal, symbolVersion: symbolVersion)
+    }
+
+    private func decodeQRErrorCorrectedBytesToB64(errorCorrectedPayload: Data, symbolVersion: Int) -> String {
+        var binData = Binary(data: errorCorrectedPayload)
+        var decodedString = ""
+        decode(&binData, stringVal: &decodedString, symbolVersion: symbolVersion)
+        return decodedString
+    }
+
     private func showBackground() {
         DispatchQueue.main.async {
             let javascript = "document.documentElement.style.backgroundColor = ''"
@@ -380,8 +426,9 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 if (found.stringValue == nil) {
                     if let rawBytes = qrCodeDescriptor?.errorCorrectedPayload {
                         //raw bytes needs to be processed to get the actual qr code message
+                        let symbolVersion = qrCodeDescriptor?.symbolVersion
                         jsObject["hasContent"] = true
-                        jsObject["content"] = rawBytes.base64EncodedString()
+                        jsObject["content"] = self.decodeQRErrorCorrectedBytesToB64(errorCorrectedPayload: rawBytes, symbolVersion: symbolVersion!)
                         jsObject["format"] = formatStringFromMetadata(found.type)
                     } else {
                         jsObject["hasContent"] = false
@@ -616,4 +663,186 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         call.resolve(result)
     }
 
+}
+
+
+public struct Binary {
+    public let bytes: [UInt8]
+    public var readingOffset: Int = 0
+
+    public init(bytes: [UInt8]) {
+        self.bytes = bytes
+    }
+
+    public init(data: Data) {
+        let bytesLength = data.count
+        var bytesArray  = [UInt8](repeating: 0, count: bytesLength)
+        (data as NSData).getBytes(&bytesArray, length: bytesLength)
+        self.bytes      = bytesArray
+    }
+
+    public func bit(_ position: Int) -> Int {
+        let byteSize        = 8
+        let bytePosition    = position / byteSize
+        let bitPosition     = 7 - (position % byteSize)
+        let byte            = self.byte(bytePosition)
+        return (byte >> bitPosition) & 0x01
+    }
+
+    public func bits(_ range: Range<Int>) -> Int {
+        var positions = [Int]()
+
+        for position in range.lowerBound..<range.upperBound {
+            positions.append(position)
+        }
+
+        return positions.reversed().enumerated().reduce(0) {
+            $0 + (bit($1.element) << $1.offset)
+        }
+    }
+
+    public func bits(_ start: Int, _ length: Int) -> Int {
+        return self.bits(start..<(start + length))
+    }
+
+    public func byte(_ position: Int) -> Int {
+        return Int(self.bytes[position])
+    }
+
+    public func bytes(_ start: Int, _ length: Int) -> [UInt8] {
+        return Array(self.bytes[start..<start+length])
+    }
+
+    public func bytes(_ start: Int, _ length: Int) -> Int {
+        return bits(start*8, length*8)
+    }
+
+    public func bitsWithInternalOffsetAvailable(_ length: Int) -> Bool {
+        return (self.bytes.count * 8) >= (self.readingOffset + length)
+    }
+
+    public mutating func next(bits length: Int) -> Int {
+        if self.bitsWithInternalOffsetAvailable(length) {
+            let returnValue = self.bits(self.readingOffset, length)
+            self.readingOffset = self.readingOffset + length
+            return returnValue
+        } else {
+            fatalError("Couldn't extract Bits.")
+        }
+    }
+
+    public func bytesWithInternalOffsetAvailable(_ length: Int) -> Bool {
+        let availableBits = self.bytes.count * 8
+        let requestedBits = readingOffset + (length * 8)
+        let possible      = availableBits >= requestedBits
+        return possible
+    }
+
+    public mutating func next(bytes length: Int) -> [UInt8] {
+        if bytesWithInternalOffsetAvailable(length) {
+            let returnValue = self.bytes[(self.readingOffset / 8)..<((self.readingOffset / 8) + length)]
+            self.readingOffset = self.readingOffset + (length * 8)
+            return Array(returnValue)
+        } else {
+            fatalError("Couldn't extract Bytes.")
+        }
+    }
+}
+
+enum SymbolType {
+    case small
+    case medium
+    case large
+
+    init?(version: Int) {
+        if 1 <= version, version <= 9 {
+            self = .small
+        } else if 10 <= version, version <= 26 {
+            self = .medium
+        } else if 27 <= version, version <= 40 {
+            self = .large
+        } else {
+            return nil
+        }
+    }
+}
+
+enum Mode: Int {
+    case numeric              = 1 // 0001 数字
+    case alphanumeric         = 2 // 0010 英数字
+    case byte                 = 4 // 0100 バイト
+    case kanji                = 8 // 1000 漢字
+    case structuredAppend     = 3 // 0011 構造的連接
+    case eci                  = 7 // 0111 ECI
+    case fnc1InFirstPosition  = 5 // 0101 FNC1（1番目の位置）
+    case fnc1InSecondPosition = 9 // 1001 FNC1（1番目の位置）
+    case endOfMessage         = 0 // 0000 終端パターン
+    var description: String {
+        switch self {
+        case .numeric:              return "0001 数字"
+        case .alphanumeric:         return "0010 英数字"
+        case .byte:                 return "0100 byte"
+        case .kanji:                return "1000 漢字"
+        case .structuredAppend:     return "0011 構造的連接"
+        case .eci:                  return "0111 ECI"
+        case .fnc1InFirstPosition:  return "0101 FNC1（1番目の位置）"
+        case .fnc1InSecondPosition: return "1001 FNC1（1番目の位置）"
+        case .endOfMessage:         return "0000 end of message"
+        }
+    }
+
+    var hasNumberOfBitsInLengthFiled: Bool {
+        switch self {
+        case .numeric, .alphanumeric, .byte, .kanji:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var numberOfBitsPerCharacter: Int? {
+        switch self {
+        case .numeric: return 10
+        case .alphanumeric: return 11
+        case .byte: return 8
+        case .kanji: return 13
+        default: return nil
+        }
+    }
+
+    func numberOfBitsInLengthFiled(for symbolVersion: Int) -> Int? {
+        guard let symbolType = SymbolType(version: symbolVersion) else { return nil }
+        switch self {
+        case .numeric:
+            switch symbolType {
+            case .small: return 10
+            case .medium: return 12
+            case .large: return 14
+            }
+
+        case .alphanumeric:
+            switch symbolType {
+            case .small: return 9
+            case .medium: return 11
+            case .large: return 13
+            }
+
+        case .byte:
+            switch symbolType {
+            case .small: return 8
+            case .medium: return 16
+            case .large: return 16
+            }
+
+        case .kanji:
+            switch symbolType {
+            case .small: return 8
+            case .medium: return 10
+            case .large: return 12
+            }
+
+        default:
+            return nil
+        }
+    }
 }

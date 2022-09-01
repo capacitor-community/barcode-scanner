@@ -1,7 +1,6 @@
 import Capacitor
 import Foundation
 import AVFoundation
-import OSLog
 
 @objc(BarcodeScanner)
 public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
@@ -195,18 +194,6 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     }
 
     private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
-        if #available(OSX 11.0, *) {
-            if #available(iOS 14.0, *) {
-                let customLog = Logger(subsystem: "technology.truevolve.scrutineer",
-                                       category: "scanner log")
-                customLog.debug("Using custom code!")
-            } else {
-                // Fallback on earlier versions
-            }
-            
-        }
-
-
         var captureDevice: AVCaptureDevice
         if(cameraDirection == "back"){
             if(backCamera != nil){

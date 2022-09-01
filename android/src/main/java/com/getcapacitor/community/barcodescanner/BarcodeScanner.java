@@ -293,14 +293,6 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     }
 
     private boolean isPrintableString(byte[] bytes) {
-        /*        for (int i = 0; i < bytes.length; i++) {
-            byte val = bytes[i];
-            if (val <= 32 || val >= 127) {
-                return false;
-            }
-        }
-        return true;*/
-
         CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
         ByteBuffer buf = ByteBuffer.wrap(bytes);
 

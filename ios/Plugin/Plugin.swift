@@ -422,7 +422,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
             if (found.type == AVMetadataObject.ObjectType.qr){
                 let qrCodeDescriptor = found.descriptor as? CIQRCodeDescriptor
                 
-                // if string value is nil, either there is nothing there, or its bytes
+                // if string value is nil, either there is nothing there, or it was not encoded correctly
                 if (found.stringValue == nil) {
                     if let rawBytes = qrCodeDescriptor?.errorCorrectedPayload {
                         //raw bytes needs to be processed to get the actual qr code message
@@ -779,14 +779,14 @@ enum Mode: Int {
     case endOfMessage         = 0 // 0000 終端パターン
     var description: String {
         switch self {
-        case .numeric:              return "0001 数字"
-        case .alphanumeric:         return "0010 英数字"
+        case .numeric:              return "0001 numeric"
+        case .alphanumeric:         return "0010 alphanumeric"
         case .byte:                 return "0100 byte"
-        case .kanji:                return "1000 漢字"
-        case .structuredAppend:     return "0011 構造的連接"
+        case .kanji:                return "1000 kanji"
+        case .structuredAppend:     return "0011 structuredAppend"
         case .eci:                  return "0111 ECI"
-        case .fnc1InFirstPosition:  return "0101 FNC1（1番目の位置）"
-        case .fnc1InSecondPosition: return "1001 FNC1（1番目の位置）"
+        case .fnc1InFirstPosition:  return "0101 FNC1 1st pos"
+        case .fnc1InSecondPosition: return "1001 FNC1 2nd pos"
         case .endOfMessage:         return "0000 end of message"
         }
     }

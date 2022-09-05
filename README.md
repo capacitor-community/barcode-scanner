@@ -129,10 +129,10 @@ const startScan = async () => {
 ```
 
 ### Opacity of the WebView
-`hideBackground()` made the `<html>` element transparent by adding `background: 'transparent';` to the `style=""` attribute. 
+
+`hideBackground()` will make the `<html>` element transparent by adding `background: 'transparent';` to the `style` attribute.
 
 If you still cannot see the camera view, check [**here**](#the-scanner-view-does-not-show-up)
-
 
 ### Stopping a scan
 
@@ -289,9 +289,7 @@ const didUserGrantPermission = async () => {
     // user has not been requested this permission before
     // it is advised to show the user some sort of prompt
     // this way you will not waste your only chance to ask for the permission
-    const c = confirm(
-      'We need your permission to use your camera to be able to scan barcodes',
-    );
+    const c = confirm('We need your permission to use your camera to be able to scan barcodes');
     if (!c) {
       return false;
     }
@@ -336,9 +334,7 @@ const checkPermission = async () => {
   if (status.denied) {
     // the user denied permission for good
     // redirect user to app settings if they want to grant it anyway
-    const c = confirm(
-      'If you want to grant permission for using your camera, enable it in the app settings.',
-    );
+    const c = confirm('If you want to grant permission for using your camera, enable it in the app settings.');
     if (c) {
       BarcodeScanner.openAppSettings();
     }
@@ -351,10 +347,7 @@ const checkPermission = async () => {
 You can setup the scanner to only recognize specific types of barcodes like this:
 
 ```ts
-import {
-  BarcodeScanner,
-  SupportedFormat,
-} from '@capacitor-community/barcode-scanner';
+import { BarcodeScanner, SupportedFormat } from '@capacitor-community/barcode-scanner';
 
 BarcodeScanner.startScan({ targetedFormats: [SupportedFormat.QR_CODE] }); // this will now only target QR-codes
 ```
@@ -498,37 +491,47 @@ In Xcode click on `Product` > `Clean Build Folder` and try to build again.
 In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
 
 ### The scanner view does not show up
-Follow the step 
-1. First check that the camera permission is granted.
-2. Check that the element does appear inside the dome, just under the `body` tag
-      - [It's not there](#i-do-not-find-the-scanner-in-the-dom)
-3. Some UI element are likely over the scanner, try to hide them by :   
-       - searching which element is causing the issue [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148)
-       - Playing with javascript [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
+
+If you cannot see the scanner in your viewport, please follow these steps:
+
+1. Check if camera permissions are granted properly
+2. Check if the scanner element does appear inside the DOM, somewhere within the `body` tag
+   - [It's not there](#i-do-not-find-the-scanner-in-the-dom)
+3. Check if some DOM elements are rendered on top of the scanner
+   - Search which element is causing the issue [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148)
+   - Play with javascript [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
 
 ### I do not find the scanner in the DOM
+
 This should appear in the DOM when running the `BarcodeScanner.startScan()` method.
+
 ```html
 <body>
- <!-- ... -->
+  <!-- ... -->
   <div style="position: absolute; left: 0px; top: -2px; height: 1px; overflow: hidden; visibility: hidden; width: 1px;">
-    <span style="position: absolute; font-size: 300px; width: auto; height: auto; margin: 0px; padding: 0px; font-family: Roboto, Arial, sans-serif;">BESbswy</span>
+    <span
+      style="position: absolute; font-size: 300px; width: auto; height: auto; margin: 0px; padding: 0px; font-family: Roboto, Arial, sans-serif;"
+      >BESbswy</span
+    >
   </div>
-<!-- ... -->
+  <!-- ... -->
 </body>
 ```
-If it does not, it may be a bug due to the component being loaded to deep inside the DOM tree.   
+
+If it does not, it may be a bug due to the component being loaded to deep inside the DOM tree.
 You can try to see if the plugin is working properly by adding the following in your `app.component.ts` file.
 
 ```typescript
-BarcodeScanner.hideBackground()
-const result = await BarcodeScanner.startScan()
+BarcodeScanner.hideBackground();
+const result = await BarcodeScanner.startScan();
 ```
 
-#### It doesn't appear 
-It could mean that you have missed a step by the [plugin configuration](#installation).  
+#### It doesn't appear
+
+It could mean that you have missed a step by the [plugin configuration](#installation).
 
 #### I did the configuration correctly
+
 please [open an issue](https://github.com/capacitor-community/barcode-scanner/issues/new/choose)
 
 ## TODO

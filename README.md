@@ -129,12 +129,10 @@ const startScan = async () => {
 ```
 
 ### Opacity of the WebView
+`hideBackground()` made the `<html>` element transparent by adding `background: 'transparent';` to the `style=""` attribute. 
 
-Because of the fact that the Scanner View will be rendered behind the WebView, you will have to call `hideBackground()` to make the WebView and the `<html>` element transparent. Every other element that needs transparency, you will have to handle yourself.
+If you still cannot see the camera view, check [**here**](#the-scanner-view-does-not-show-up)
 
-The `<html>` element is made transparent by adding `background: 'transparent';` to the `style=""` attribute. So in theory it is possible that this is overwritten by some CSS property in your setup. Because this plugin does not aim to fix every single scenario out there, you will have to think of a workaround for this yourself, if this applies to you (probably not).
-
-If you still cannot see the camera view, check if any other elements are blocking it. For more info on this see [here](#the-scanner-view-does-not-show-up).
 
 ### Stopping a scan
 
@@ -500,8 +498,38 @@ In Xcode click on `Product` > `Clean Build Folder` and try to build again.
 In Android Studio click `File` > `Sync Project with Gradle Files` and try to build again.
 
 ### The scanner view does not show up
+Follow the step 
+1. First check that the camera permission is granted.
+2. Check that the element does appear inside the dome, just under the `body` tag
+      - [It's not there](#i-do-not-find-the-scanner-in-the-dom)
+3. Some UI element are likely over the scanner, try to hide them by :   
+       - searching which element is causing the issue [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148)
+       - Playing with javascript [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
 
-First check that the camera permission is granted. If the scanner view does still not appear it is likely that some UI element is blocking it. Check out these issues for more information on how to resolve such an issue: [#7](https://github.com/capacitor-community/barcode-scanner/issues/7#issuecomment-744441148) and [#26](https://github.com/capacitor-community/barcode-scanner/issues/26)
+### I do not find the scanner in the DOM
+This should appear in the DOM when running the `BarcodeScanner.startScan()` method.
+```html
+<body>
+ <!-- ... -->
+  <div style="position: absolute; left: 0px; top: -2px; height: 1px; overflow: hidden; visibility: hidden; width: 1px;">
+    <span style="position: absolute; font-size: 300px; width: auto; height: auto; margin: 0px; padding: 0px; font-family: Roboto, Arial, sans-serif;">BESbswy</span>
+  </div>
+<!-- ... -->
+</body>
+```
+If it does not, it may be a bug due to the component being loaded to deep inside the DOM tree.   
+You can try to see if the plugin is working properly by adding the following in your `app.component.ts` file.
+
+```typescript
+BarcodeScanner.hideBackground()
+const result = await BarcodeScanner.startScan()
+```
+
+#### It doesn't appear 
+It could mean that you have missed a step by the [plugin configuration](#installation).  
+
+#### I did the configuration correctly
+please [open an issue](https://github.com/capacitor-community/barcode-scanner/issues/new/choose)
 
 ## TODO
 

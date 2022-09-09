@@ -41,6 +41,8 @@ On **Android** this library uses [`zxing-android-embedded`](https://github.com/j
 
 ### Note on supported Capacitor versions
 
+`v3.x` supports Capacitor `v4.x`
+
 `v2.x` supports Capacitor `v3.x`
 
 `v1.x` supports Capacitor `v2.x`
@@ -117,7 +119,13 @@ Scanning a (QR) barcode can be as simple as:
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 const startScan = async () => {
-  BarcodeScanner.hideBackground(); // make background of WebView transparent
+  // Check camera permission
+  // This is just a simple example, check out the better checks below
+  await BarcodeScanner.checkPermission({ force: true });
+
+  // make background of WebView transparent
+  // note: if you are using ionic this might not be enough, check below
+  BarcodeScanner.hideBackground();
 
   const result = await BarcodeScanner.startScan(); // start scanning and wait for a result
 
@@ -131,6 +139,8 @@ const startScan = async () => {
 ### Opacity of the WebView
 
 `hideBackground()` will make the `<html>` element transparent by adding `background: 'transparent';` to the `style` attribute.
+
+If you are using Ionic you need to set some css variables as well, check [**here**](#ionic-css-variables)
 
 If you still cannot see the camera view, check [**here**](#the-scanner-view-does-not-show-up)
 
@@ -482,6 +492,30 @@ The following types are supported:
 
 ## Troubleshooting
 
+### Ionic CSS variables
+
+Ionic will add additional CSS variables which will prevent the scanner from showing up.
+To fix this issue add the following snippet at the end of your global css.
+
+```css
+body.scanner-active {
+  --background: transparent;
+  --ion-background-color: transparent;
+}
+```
+
+Once this is done, you need to add this class to the body before using the scanner.
+
+```typescript
+document.querySelector('body').classList.add('scanner-active');
+```
+
+After your done with your scanning work, you can simply remove this class.
+
+```typescript
+document.querySelector('body').classList.remove('scanner-active');
+```
+
 ### I have a `Error: Plugin BarcodeScanner does not respond to method call` error message on iOS
 
 In Xcode click on `Product` > `Clean Build Folder` and try to build again.
@@ -539,5 +573,4 @@ please [open an issue](https://github.com/capacitor-community/barcode-scanner/is
 A non-exhaustive list of todos:
 
 - Support for switching between cameras
-- Support for toggling the flashlight
 - Support for web

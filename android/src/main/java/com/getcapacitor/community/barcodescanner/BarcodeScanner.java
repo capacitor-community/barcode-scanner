@@ -117,14 +117,14 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                         500, 600
                     );
 
-                    mBarcodeView.animate().translateY(110);
+                    mBarcodeView.animate().translationY(110);
 
                     // Set BarcodeView as sibling View of WebView
                     ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);
 
                     // Bring the WebView in front of the BarcodeView
                     // This allows us to completely style the BarcodeView in HTML/CSS
-                    bridge.getWebView().bringToFront();
+                  //  bridge.getWebView().bringToFront();
 
                     mBarcodeView.resume();
                 }

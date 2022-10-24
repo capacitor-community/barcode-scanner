@@ -114,9 +114,10 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     mBarcodeView.setCameraSettings(settings);
 
                     FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
+                        500, 600
                     );
+
+                    mBarcodeView.animate().translateY(110);
 
                     // Set BarcodeView as sibling View of WebView
                     ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);

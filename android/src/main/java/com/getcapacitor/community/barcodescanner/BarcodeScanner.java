@@ -5,6 +5,7 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -112,9 +113,9 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     );
                     settings.setContinuousFocusEnabled(true);
                     mBarcodeView.setCameraSettings(settings);
-
+                    
                     FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
-                        500, 600
+                            Resources.getSystem().getDisplayMetrics().widthPixels/2, Resources.getSystem().getDisplayMetrics().heightPixels - 85
                     );
 
                     mBarcodeView.animate().translationY(110);

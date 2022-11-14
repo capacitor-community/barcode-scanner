@@ -163,9 +163,11 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         // undo previous setup
         // because it may be prepared with a different config
         dismantleCamera();
+        
+        String cameraDirection = call.getBoolean("isNativeAndroidDevice") ? "front": "back";
 
         // setup camera with new config
-        setupCamera(call.getString("cameraDirection", "back"));
+        setupCamera(cameraDirection);
 
         // indicate this method was run
         didRunCameraPrepare = true;

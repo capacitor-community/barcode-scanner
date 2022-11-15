@@ -222,8 +222,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     private func dismantleCamera() {
         // opposite of setupCamera
 
-        if (self.captureSession != nil) {
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            if (self.captureSession != nil) {
                 self.captureSession!.stopRunning()
                 self.cameraView.removePreviewLayer()
                 self.captureVideoPreviewLayer = nil

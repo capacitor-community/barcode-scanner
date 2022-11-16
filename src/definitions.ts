@@ -4,16 +4,11 @@ export interface BarcodeScannerPlugin {
   hideBackground(): Promise<void>;
   showBackground(): Promise<void>;
   startScan(options?: ScanOptions): Promise<ScanResult>;
-  startScanning(
-    options?: ScanOptions,
-    callback?: (result: ScanResult, err?: any) => void,
-  ): Promise<CallbackID>;
+  startScanning(options?: ScanOptions, callback?: (result: ScanResult, err?: any) => void): Promise<CallbackID>;
   pauseScanning(): Promise<void>;
   resumeScanning(): Promise<void>;
   stopScan(options?: StopScanOptions): Promise<void>;
-  checkPermission(
-    options?: CheckPermissionOptions,
-  ): Promise<CheckPermissionResult>;
+  checkPermission(options?: CheckPermissionOptions): Promise<CheckPermissionResult>;
   openAppSettings(): Promise<void>;
   enableTorch(): Promise<void>;
   disableTorch(): Promise<void>;
@@ -33,7 +28,7 @@ export enum SupportedFormat {
   /**
    * Android only
    */
-  UPC_EAN_EXTENSION = 'UPC_EAN_EXTENSION',
+  // UPC_EAN_EXTENSION = 'UPC_EAN_EXTENSION',
 
   EAN_8 = 'EAN_8',
 
@@ -73,7 +68,7 @@ export enum SupportedFormat {
   /**
    * Android only
    */
-  MAXICODE = 'MAXICODE',
+  // MAXICODE = 'MAXICODE',
 
   PDF_417 = 'PDF_417',
 
@@ -141,12 +136,9 @@ export interface ScanResult {
    */
   content?: string;
 
-  /**
-   * This returns format of scan result.
-   *
-   * @since 2.1.0
-   */
-  format?: string;
+  bounds?: any; // Rectangle
+
+  corners?: any;
 }
 
 export interface CheckPermissionOptions {

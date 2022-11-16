@@ -50,6 +50,10 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
+    implementation 'androidx.camera:camera-core:1.1.0'
+    implementation 'androidx.camera:camera-view:1.1.0'
+    implementation 'androidx.camera:camera-lifecycle:1.1.0'
+    implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.1.0'
     testImplementation "junit:junit:$junitVersion"
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

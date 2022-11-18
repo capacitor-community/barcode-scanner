@@ -79,11 +79,6 @@
       "dist/**/*"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npx pretty-quick --staged"
-    }
-  },
   "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
   "directories": {
     "example": "examples"

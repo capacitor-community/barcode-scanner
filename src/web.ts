@@ -1,65 +1,49 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { WebPlugin } from '@capacitor/core';
 
 import type {
   BarcodeScannerPlugin,
+  CameraPermissionState,
   ScanOptions,
   ScanResult,
-  CheckPermissionOptions,
-  CheckPermissionResult,
-  StopScanOptions,
   TorchStateResult,
 } from './definitions';
 
 export class BarcodeScannerWeb
   extends WebPlugin
   implements BarcodeScannerPlugin {
-  async prepare(): Promise<void> {
+  async start(
+    _options: ScanOptions,
+    _callback: (result: ScanResult, err?: any) => void,
+  ): Promise<string> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async hideBackground(): Promise<void> {
+  async pause(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async showBackground(): Promise<void> {
+  async resume(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async startScan(_options: ScanOptions): Promise<ScanResult> {
+  async stop(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async startScanning(_options: ScanOptions, _callback: any): Promise<string> {
+  async checkPermissions(): Promise<CameraPermissionState> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async pauseScanning(): Promise<void> {
-    throw this.unimplemented('Not implemented on web.');
-  }
-
-  async resumeScanning(): Promise<void> {
-    throw this.unimplemented('Not implemented on web.');
-  }
-
-  async stopScan(_options?: StopScanOptions): Promise<void> {
-    throw this.unimplemented('Not implemented on web.');
-  }
-
-  async checkPermission(
-    _options: CheckPermissionOptions,
-  ): Promise<CheckPermissionResult> {
-    throw this.unimplemented('Not implemented on web.');
-  }
-
-  async openAppSettings(): Promise<void> {
-    throw this.unimplemented('Not implemented on web.');
-  }
-
-  async disableTorch(): Promise<void> {
+  async requestPermissions(): Promise<CameraPermissionState> {
     throw this.unimplemented('Not implemented on web.');
   }
 
   async enableTorch(): Promise<void> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  async disableTorch(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 

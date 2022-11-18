@@ -1,7 +1,8 @@
 PODS:
-  - Capacitor (3.5.1):
+
+  - Capacitor (4.0.1):
     - CapacitorCordova
-  - CapacitorCordova (3.5.1)
+  - CapacitorCordova (4.0.1)
   - GoogleDataTransport (9.1.2):
     - GoogleUtilities/Environment (~> 7.2)
     - nanopb (~> 2.30908.0)
@@ -88,8 +89,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@capacitor/ios"
 
 SPEC CHECKSUMS:
-  Capacitor: a13a4a985bf4e3eac033c74848c77ff29dfa13ca
-  CapacitorCordova: 9305ba1d3c73fa7271f5b2c3ca8a92ea76b56c74
+  Capacitor: 706b36563433f4a866cbe6d2eade7c04725d9e08
+  CapacitorCordova: 728728aeeee853028558fefb4ccf7310e9d85a7a
   GoogleDataTransport: 629c20a4d363167143f30ea78320d5a7eb8bd940
   GoogleMLKit: 755661c46990a85e42278015f26400286d98ad95
   GoogleToolboxForMac: 8bef7c7c5cf7291c687cf5354f39f9db6399ad34
@@ -105,5 +106,6 @@ SPEC CHECKSUMS:
   Protobuf: 235750e4696ff59fb07d949a9dbbc92b3c0700fe
 
 PODFILE CHECKSUM: 7c0a106c397f2aff4e1881e08e370ae3a1c1543e
+
 
 COCOAPODS: 1.11.2

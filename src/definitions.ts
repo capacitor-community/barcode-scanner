@@ -1,4 +1,6 @@
+
 import type { PermissionState } from '@capacitor/core';
+
 
 export type CameraPermissionState = PermissionState;
 export interface BarcodeScannerPlugin {

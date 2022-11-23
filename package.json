@@ -43,10 +43,12 @@
     "verify:web": "npm run build"
   },
   "devDependencies": {
+
     "@capacitor/android": "^4.5.0",
     "@capacitor/core": "^4.5.0",
     "@capacitor/docgen": "0.2.0",
     "@capacitor/ios": "^4.5.0",
+
     "@ionic/eslint-config": "^0.3.0",
     "@ionic/prettier-config": "^2.0.0",
     "@ionic/swiftlint-config": "^1.1.2",
@@ -78,11 +80,6 @@
     "ignorePatterns": [
       "dist/**/*"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npx pretty-quick --staged"
-    }
   },
   "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
   "directories": {

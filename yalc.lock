@@ -1,9 +1,0 @@
-{
-  "version": "v1",
-  "packages": {
-    "@capacitor-community/barcode-scanner": {
-      "signature": "6ba7451b3da4cecf053b37298a5118b6",
-      "file": true
-    }
-  }
-}

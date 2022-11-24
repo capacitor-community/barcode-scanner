@@ -140,6 +140,15 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
         }
         return false
     }
+    
+    private func enableAutoFocus(device: AVCaptureDevice) throws {
+        if(device.isFocusModeSupported(.continuousAutoFocus)) {
+            try device.lockForConfiguration()
+            device.focusMode = .continuousAutoFocus
+            device.unlockForConfiguration()
+        }
+    }
+    
 
     private func setupCamera(cameraDirection: String? = "back") -> Bool {
         do {
@@ -147,12 +156,18 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             cameraView.backgroundColor = UIColor.clear
             self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
             
-            let availableVideoDevices =  discoverCaptureDevices()
-            for device in availableVideoDevices {
-                if device.position == AVCaptureDevice.Position.back {
+            // load cameras in a given order to make sure triple is used on devices that are supported
+            let deviceDescoverySession = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInTripleCamera, AVCaptureDevice.DeviceType.builtInDualCamera, AVCaptureDevice.DeviceType.builtInWideAngleCamera],
+                                                                            mediaType: AVMediaType.video,
+                                                                            position: AVCaptureDevice.Position.unspecified)
+        
+            for device in deviceDescoverySession.devices {
+                if device.position == AVCaptureDevice.Position.back && backCamera == nil {
+                    try enableAutoFocus(device: device)
                     backCamera = device
                 }
-                else if device.position == AVCaptureDevice.Position.front {
+                else if device.position == AVCaptureDevice.Position.front && frontCamera == nil {
+                    try enableAutoFocus(device: device)
                     frontCamera = device
                 }
             }
@@ -174,10 +189,6 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             let videoOutput = AVCaptureVideoDataOutput()
             videoOutput.setSampleBufferDelegate(self as AVCaptureVideoDataOutputSampleBufferDelegate, queue: DispatchQueue(label: "sample buffer delegate", attributes: []))
             captureSession?.addOutput(videoOutput)
-                        
-            // metaOutput = AVCaptureMetadataOutput()
-            // captureSession!.addOutput(metaOutput!)
-            // metaOutput!.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
             self.didRunCameraSetup = true

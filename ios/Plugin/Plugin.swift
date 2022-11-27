@@ -3,6 +3,53 @@ import Foundation
 import AVFoundation
 import MLKitVision
 import MLKitBarcodeScanning
+import Photos
+import PhotosUI
+
+internal enum CameraPermissionType: String, CaseIterable {
+    case camera
+    // preparation for a future version of the plugin
+    // case photos
+}
+
+internal protocol CameraAuthorizationState {
+    var authorizationState: String { get }
+}
+
+extension AVAuthorizationStatus: CameraAuthorizationState {
+    var authorizationState: String {
+        switch self {
+        case .denied, .restricted:
+            return "denied"
+        case .authorized:
+            return "granted"
+        case .notDetermined:
+            fallthrough
+        @unknown default:
+            return "prompt"
+        }
+    }
+}
+
+extension PHAuthorizationStatus: CameraAuthorizationState {
+    var authorizationState: String {
+        switch self {
+        case .denied, .restricted:
+            return "denied"
+        case .authorized:
+            return "granted"
+        #if swift(>=5.3)
+        // poor proxy for Xcode 12/iOS 14, should be removed once building with Xcode 12 is required
+        case .limited:
+            return "limited"
+        #endif
+        case .notDetermined:
+            fallthrough
+        @unknown default:
+            return "prompt"
+        }
+    }
+}
 
 @objc(CapacitorCommunityBarcodeScanner)
 public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -72,55 +119,12 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
     var savedCall: CAPPluginCall? = nil
     var scanningPaused: Bool = false
-    var lastScanResult: String? = nil
+    
 
-    enum SupportedFormat: String, CaseIterable {
-        // 1D Product
-        //!\ UPC_A is part of EAN_13 according to Apple docs
-        case UPC_E
-        //!\ UPC_EAN_EXTENSION is not supported by AVFoundation
-        case EAN_8
-        case EAN_13
-        // 1D Industrial
-        case CODE_39
-        case CODE_39_MOD_43
-        case CODE_93
-        case CODE_128
-        //!\ CODABAR is not supported by AVFoundation
-        case ITF
-        case ITF_14
-        // 2D
-        case AZTEC
-        case DATA_MATRIX
-        //!\ MAXICODE is not supported by AVFoundation
-        case PDF_417
-        case QR_CODE
-        //!\ RSS_14 is not supported by AVFoundation
-        //!\ RSS_EXPANDED is not supported by AVFoundation
+    let serialBackgroundQueue = DispatchQueue(label: "capacitorBarcodeScannerQueue")
 
-        var value: AVMetadataObject.ObjectType {
-            switch self {
-                // 1D Product
-                case .UPC_E: return AVMetadataObject.ObjectType.upce
-                case .EAN_8: return AVMetadataObject.ObjectType.ean8
-                case .EAN_13: return AVMetadataObject.ObjectType.ean13
-                // 1D Industrial
-                case .CODE_39: return AVMetadataObject.ObjectType.code39
-                case .CODE_39_MOD_43: return AVMetadataObject.ObjectType.code39Mod43
-                case .CODE_93: return AVMetadataObject.ObjectType.code93
-                case .CODE_128: return AVMetadataObject.ObjectType.code128
-                case .ITF: return AVMetadataObject.ObjectType.interleaved2of5
-                case .ITF_14: return AVMetadataObject.ObjectType.itf14
-                // 2D
-                case .AZTEC: return AVMetadataObject.ObjectType.aztec
-                case .DATA_MATRIX: return AVMetadataObject.ObjectType.dataMatrix
-                case .PDF_417: return AVMetadataObject.ObjectType.pdf417
-                case .QR_CODE: return AVMetadataObject.ObjectType.qr
-            }
-        }
-    }
 
-    var targetedFormats = [AVMetadataObject.ObjectType]()
+    var formats = [BarcodeFormat]()
 
     enum CaptureError: Error {
         case backCameraUnavailable
@@ -181,13 +185,14 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
                     cameraDir = "back"
                 }
             }
-            self.barcodeScanner = BarcodeScanner.barcodeScanner()
+            
+            self.barcodeScanner = BarcodeScanner.barcodeScanner(options: BarcodeScannerOptions.init(formats: BarcodeFormat(self.formats)))
             let input: AVCaptureDeviceInput
             input = try self.createCaptureDeviceInput(cameraDirection: cameraDir)
             captureSession = AVCaptureSession()
             captureSession!.addInput(input)
             let videoOutput = AVCaptureVideoDataOutput()
-            videoOutput.setSampleBufferDelegate(self as AVCaptureVideoDataOutputSampleBufferDelegate, queue: DispatchQueue(label: "sample buffer delegate", attributes: []))
+            videoOutput.setSampleBufferDelegate(self as AVCaptureVideoDataOutputSampleBufferDelegate, queue: DispatchQueue(label: "capacitor barcode scanner buffer delegate", attributes: []))
             captureSession?.addOutput(videoOutput)
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
@@ -203,15 +208,6 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             //
         }
         return false
-    }
-
-    @available(swift, deprecated: 5.6, message: "New Xcode? Check if `AVCaptureDevice.DeviceType` has new types and add them accordingly.")
-    private func discoverCaptureDevices() -> [AVCaptureDevice] {
-        if #available(iOS 13.0, *) {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera, .builtInUltraWideCamera, .builtInDualWideCamera, .builtInWideAngleCamera], mediaType: .video, position: .unspecified).devices
-        } else {
-            return AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified).devices
-        }
     }
 
     private func createCaptureDeviceInput(cameraDirection: String? = "back") throws -> AVCaptureDeviceInput {
@@ -241,8 +237,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     private func dismantleCamera() {
         // opposite of setupCamera
 
-        
-        DispatchQueue.main.async {
+        self.serialBackgroundQueue.async {
             if (self.captureSession != nil) {
                 self.captureSession!.stopRunning()
                 self.cameraView.removePreviewLayer()
@@ -310,35 +305,80 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
             self.shouldRunScan = false
 
-            targetedFormats = [AVMetadataObject.ObjectType]();
+            var newFormats = [BarcodeFormat]();
 
-            if ((savedCall?.options["targetedFormats"]) != nil) {
-                let _targetedFormats = savedCall?.getArray("targetedFormats", String.self)
+            if ((savedCall?.options["formats"]) != nil) {
+                let _formats = savedCall?.getArray("formats", String.self)
 
-                if (_targetedFormats != nil && _targetedFormats?.count ?? 0 > 0) {
-                    _targetedFormats?.forEach { targetedFormat in
-                        if let value = SupportedFormat(rawValue: targetedFormat)?.value {
-                            print(value)
-                            targetedFormats.append(value)
+                if (_formats != nil && _formats?.count ?? 0 > 0) {
+                    
+                    _formats?.forEach { _format in
+                        switch (_format) {
+                        case "ALL":
+                            newFormats.append(BarcodeFormat.all)
+                            break
+                        case "CODE_128":
+                            newFormats.append(BarcodeFormat.code128)
+                            break
+                        case "CODE_39":
+                            newFormats.append(BarcodeFormat.code39)
+                            break
+                        case "CODE_93":
+                            newFormats.append(BarcodeFormat.code93)
+                            break
+                        case "CODA_BAR":
+                            newFormats.append(BarcodeFormat.codaBar)
+                            break
+                        case "DATA_MATRIX":
+                            newFormats.append(BarcodeFormat.dataMatrix)
+                            break
+                        case "EAN_13":
+                            newFormats.append(BarcodeFormat.EAN13)
+                            break
+                        case "EAN_8":
+                            newFormats.append(BarcodeFormat.EAN8)
+                            break
+                        case "ITF":
+                            newFormats.append(BarcodeFormat.ITF)
+                            break
+                        case "QR_CODE":
+                            newFormats.append(BarcodeFormat.qrCode)
+                            break
+                        case "UPC_A":
+                            newFormats.append(BarcodeFormat.UPCA)
+                            break
+                        case "UPC_E":
+                            newFormats.append(BarcodeFormat.UPCE)
+                            break
+                        case "PDF_417":
+                            newFormats.append(BarcodeFormat.PDF417)
+                            break
+                        case "AZTEC":
+                            newFormats.append(BarcodeFormat.aztec)
+                            break
+                        default:
+                            // do nothing
+                            break
+                            
                         }
                     }
                 }
 
-                if (targetedFormats.count == 0) {
-                    print("The property targetedFormats was not set correctly.")
-                }
             }
 
-            if (targetedFormats.count == 0) {
-                for supportedFormat in SupportedFormat.allCases {
-                    targetedFormats.append(supportedFormat.value)
+            if (newFormats.count == 0) {
+                newFormats.append(BarcodeFormat.all)
+            }
+            
+            self.formats = newFormats;
+            
+            self.serialBackgroundQueue.async {
+                if (self.captureSession != nil) {
+                    self.captureSession!.startRunning()
                 }
+                
             }
-
-            DispatchQueue.main.async {
-               // self.metaOutput!.metadataObjectTypes = self.targetedFormats
-                self.captureSession!.startRunning()
-            }
+            
 
             self.hideBackground()
 
@@ -382,72 +422,31 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
                 }
                 // Recognized barcodes
                 for barcode in features {
-                    // print(barcode.rawValue)
-                    if (!self.scanningPaused ) {
+                    if (!self.scanningPaused) {
                         var jsObject = PluginCallResultData()
                         jsObject["content"] = barcode.rawValue
                         jsObject["format"] = barcode.format.rawValue
                         jsObject["valueType"] = barcode.valueType
-                        self.savedCall!.resolve(jsObject)
+                        
+                        //var position = PluginCallResultData()
+                        // print(barcode.frame)
+                        print(barcode.cornerPoints![0])
+                        print(UIScreen.main.scale)
+                        // todo return corner points
+                        if (self.savedCall != nil) {
+                            self.savedCall!.resolve(jsObject)
+                        }
+                        
                     }
                 }
             }
         }
     }
 
-    private func formatStringFromMetadata(_ type: AVMetadataObject.ObjectType) -> String {
-            switch type {
-            case AVMetadataObject.ObjectType.upce:
-                return "UPC_E"
-            case AVMetadataObject.ObjectType.ean8:
-                return "EAN_8"
-            case AVMetadataObject.ObjectType.ean13:
-                return "EAN_13"
-            case AVMetadataObject.ObjectType.code39:
-                return "CODE_39"
-            case AVMetadataObject.ObjectType.code39Mod43:
-                return "CODE_39_MOD_43"
-            case AVMetadataObject.ObjectType.code93:
-                return "CODE_93"
-            case AVMetadataObject.ObjectType.code128:
-                return "CODE_128"
-            case AVMetadataObject.ObjectType.interleaved2of5:
-                return "ITF"
-            case AVMetadataObject.ObjectType.itf14:
-                return "ITF_14"
-            case AVMetadataObject.ObjectType.aztec:
-                return "AZTEC"
-            case AVMetadataObject.ObjectType.dataMatrix:
-                return "DATA_MATRIX"
-            case AVMetadataObject.ObjectType.pdf417:
-                return "PDF_417"
-            case AVMetadataObject.ObjectType.qr:
-                return "QR_CODE"
-            default:
-                return type.rawValue
-            }
-        }
-
-    // @objc func prepare(_ call: CAPPluginCall) {
-    //     self.prepare()
-    //     call.resolve()
-    // }
-
-    // @objc func hideBackground(_ call: CAPPluginCall) {
-    //     self.hideBackground()
-    //     call.resolve()
-    // }
-
-    // @objc func showBackground(_ call: CAPPluginCall) {
-    //     self.showBackground()
-    //     call.resolve()
-    // }
-
 
     @objc func start(_ call: CAPPluginCall) {
         self.savedCall = call
         scanningPaused = false
-        lastScanResult = nil
         self.scan()
     }
 
@@ -463,17 +462,20 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
     @objc func stop(_ call: CAPPluginCall) {
-        if ((call.getBool("resolveScan") ?? false) && self.savedCall != nil) {
-            var jsObject = PluginCallResultData()
-            jsObject["hasContent"] = false
-
-            savedCall?.resolve(jsObject)
+        if (self.savedCall != nil) {
             savedCall = nil
         }
 
         self.destroy()
         call.resolve()
     }
+    
+    @objc func vibrate(_ call: CAPPluginCall) {
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+    }
+    
+
 
     @objc func checkPermission(_ call: CAPPluginCall) {
         let force = call.getBool("force") ?? false
@@ -585,5 +587,58 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
         call.resolve(result)
     }
+    
+    @objc override public func checkPermissions(_ call: CAPPluginCall) {
+           var result: [String: Any] = [:]
+           for permission in CameraPermissionType.allCases {
+               let state: String
+               switch permission {
+               case .camera:
+                   state = AVCaptureDevice.authorizationStatus(for: .video).authorizationState
+//               case .photos:
+//                   if #available(iOS 14, *) {
+//                       state = PHPhotoLibrary.authorizationStatus(for: .readWrite).authorizationState
+//                   } else {
+//                       state = PHPhotoLibrary.authorizationStatus().authorizationState
+//                   }
+               }
+               result[permission.rawValue] = state
+           }
+           call.resolve(result)
+       }
+
+       @objc override public func requestPermissions(_ call: CAPPluginCall) {
+           // get the list of desired types, if passed
+           let typeList = call.getArray("permissions", String.self)?.compactMap({ (type) -> CameraPermissionType? in
+               return CameraPermissionType(rawValue: type)
+           }) ?? []
+           // otherwise check everything
+           let permissions: [CameraPermissionType] = (typeList.count > 0) ? typeList : CameraPermissionType.allCases
+           // request the permissions
+           let group = DispatchGroup()
+           for permission in permissions {
+               switch permission {
+               case .camera:
+                   group.enter()
+                   AVCaptureDevice.requestAccess(for: .video) { _ in
+                       group.leave()
+                   }
+//               case .photos:
+//                   group.enter()
+//                   if #available(iOS 14, *) {
+//                       PHPhotoLibrary.requestAuthorization(for: .readWrite) { (_) in
+//                           group.leave()
+//                       }
+//                   } else {
+//                       PHPhotoLibrary.requestAuthorization({ (_) in
+//                           group.leave()
+//                       })
+//                   }
+               }
+           }
+           group.notify(queue: DispatchQueue.main) { [weak self] in
+               self?.checkPermissions(call)
+           }
+       }
 
 }

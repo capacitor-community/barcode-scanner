@@ -1,21 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WebPlugin } from '@capacitor/core';
 
-import type {
-  BarcodeScannerPlugin,
-  CameraPermissionState,
-  ScanOptions,
-  ScanResult,
-  TorchStateResult,
-} from './definitions';
+import type { BarcodeScannerPlugin, PermissionStates, ScanOptions, ScanResult, TorchStateResult } from './definitions';
 
-export class BarcodeScannerWeb
-  extends WebPlugin
-  implements BarcodeScannerPlugin {
-  async start(
-    _options: ScanOptions,
-    _callback: (result: ScanResult, err?: any) => void,
-  ): Promise<string> {
+export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
+  async start(_options: ScanOptions, _callback: (result: ScanResult, err?: any) => void): Promise<string> {
     throw this.unimplemented('Not implemented on web.');
   }
 
@@ -31,11 +20,11 @@ export class BarcodeScannerWeb
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async checkPermissions(): Promise<CameraPermissionState> {
+  async checkPermissions(): Promise<PermissionStates> {
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async requestPermissions(): Promise<CameraPermissionState> {
+  async requestPermissions(): Promise<PermissionStates> {
     throw this.unimplemented('Not implemented on web.');
   }
 
@@ -52,6 +41,10 @@ export class BarcodeScannerWeb
   }
 
   async getTorchState(): Promise<TorchStateResult> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  async vibrate(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
 }

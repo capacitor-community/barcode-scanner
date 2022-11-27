@@ -320,10 +320,6 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                                 Log.e(MLKIT_TAG, "bounds : " + bounds.flattenToString());
 
                                 if (!scannedResult.contains(rawValue)) {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                        mVibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
-                                    }
-
                                     Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
 
                                     scannedResult.add(rawValue);
@@ -363,6 +359,13 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                         }
                     }
                 );
+        }
+    }
+
+    @PluginMethod
+    public void vibrate(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mVibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
         }
     }
 

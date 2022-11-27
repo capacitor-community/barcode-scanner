@@ -1,8 +1,21 @@
 
 import type { PermissionState } from '@capacitor/core';
 
+export type CameraPermissionState = PermissionState | 'limited';
 
-export type CameraPermissionState = PermissionState;
+export type CameraPermissionType = 'camera' | 'photos';
+
+export interface PermissionStates {
+  camera: CameraPermissionState;
+  // preparation for a future version of the plugin
+  // photos: CameraPermissionState;
+}
+
+export interface CameraPluginPermissions {
+  permissions: CameraPermissionType[];
+}
+
+
 export interface BarcodeScannerPlugin {
   // TODO: I am not sure if this will make sense anymore in the ML Kit version
   // prepare(options?: ScanOptions): Promise<void>;
@@ -15,31 +28,28 @@ export interface BarcodeScannerPlugin {
   /**
    * Start scanning for barcodes
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
-  start(
-    options?: ScanOptions,
-    callback?: (result: ScanResult, err?: any) => void,
-  ): Promise<CallbackID>;
+  start(options?: ScanOptions, callback?: (result: ScanResult, err?: any) => void): Promise<CallbackID>;
 
   /**
    * Pause scanning for barcodes
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   pause(): Promise<void>;
 
   /**
    * Resume paused scanning for barcodes
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   resume(): Promise<void>;
 
   /**
    * Stop scanning for barcodes
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   stop(): Promise<void>;
 
@@ -49,14 +59,14 @@ export interface BarcodeScannerPlugin {
    *
    * @since 3.0.0
    */
-  checkPermissions(): Promise<CameraPermissionState>;
+  checkPermissions(): Promise<PermissionStates>;
 
   /**
    * Request camera permissions
    *
    * @since 3.0.0
    */
-  requestPermissions(): Promise<CameraPermissionState>;
+  requestPermissions(permissions?: CameraPluginPermissions): Promise<PermissionStates>;
 
   // TODO: is this required for anything?
   // openAppSettings(): Promise<void>;
@@ -89,26 +99,32 @@ export interface BarcodeScannerPlugin {
    * @since 3.0.0
    */
   getTorchState(): Promise<TorchStateResult>;
+
+  /**
+   * Vibrates the device to indicate successful scan
+   *
+   * @since 4.0.0
+   */
+  vibrate(): Promise<void>;
 }
 
 export type CallbackID = string;
 
 export enum BarcodeFormat {
-  UNKNOWN = 0,
-  ALL = 0xffff,
-  CODE_128 = 0x0001,
-  CODE_39 = 0x0002,
-  CODE_93 = 0x0004,
-  CODA_BAR = 0x0008,
-  DATA_MATRIX = 0x0010,
-  EAN_13 = 0x0020,
-  EAN_8 = 0x0040,
-  ITF = 0x0080,
-  QR_CODE = 0x0100,
-  UPC_A = 0x0200,
-  UPC_E = 0x0400,
-  PDF_417 = 0x0800,
-  AZTEC = 0x1000,
+  ALL = 'ALL',
+  CODE_128 = 'CODE_128',
+  CODE_39 = 'CODE_39',
+  CODE_93 = 'CODE_93',
+  CODA_BAR = 'CODA_BAR',
+  DATA_MATRIX = 'DATA_MATRIX',
+  EAN_13 = 'EAN_13',
+  EAN_8 = 'EAN_8',
+  ITF = 'ITF',
+  QR_CODE = 'QR_CODE',
+  UPC_A = 'UPC_A',
+  UPC_E = 'UPC_E',
+  PDF_417 = 'PDF_417',
+  AZTEC = 'AZTEC',
 }
 
 // TODO: Maybe it would make sense to rename this to CameraType and allow additional settings like "WIDE_ANGLE_CAMERA"?
@@ -122,13 +138,13 @@ export interface ScanOptions {
    * This parameter can be used to make the scanner only recognize a specific type of barcode.
    *  If `format` is not specified or left empty, all types of barcodes will be targeted.
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
-  format?: BarcodeFormat;
+  formats?: BarcodeFormat[];
   /**
    * This parameter can be used to set the camera direction.
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   cameraDirection?: CameraDirection;
 }
@@ -137,21 +153,28 @@ export interface ScanResult {
   /**
    * Content of the barcode
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   content: string;
 
   /**
    * Format of the scanned barcode
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   format: BarcodeFormat;
 
   /**
+   * Type of the returned barcodes content
+   *
+   * @since 4.0.0
+   */
+  contentType: string;
+
+  /**
    * Position of the scanned barcode
    *
-   * @since 3.0.0
+   * @since 4.0.0
    */
   position: {
     x: number;

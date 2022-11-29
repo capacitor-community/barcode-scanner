@@ -411,6 +411,28 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+ 
+        switch UIDevice.current.orientation {
+            case .portrait:
+                print("portrait")
+                connection.videoOrientation = AVCaptureVideoOrientation.portrait
+                break
+            case .portraitUpsideDown:
+                print("portraitUpsideDown")
+                connection.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
+                break
+            case .landscapeLeft:
+                print("landscapeLeft")
+                connection.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
+                break
+            case .landscapeRight:
+                print("landscapeRight")
+                connection.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+                break
+            default:
+                print("do not set this")
+                // connection.videoOrientation = AVCaptureVideoOrientation.portrait
+        }
         
         if let barcodeScanner = self.barcodeScanner {
             
@@ -428,12 +450,17 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
                         jsObject["format"] = barcode.format.rawValue
                         jsObject["valueType"] = barcode.valueType
                         
-                        //var position = PluginCallResultData()
-                        // print(barcode.frame)
-                        print(barcode.cornerPoints![0])
-                        print(UIScreen.main.scale)
-                        // todo return corner points
+                        var cornerPoints = [[Int]]()
+                        for cp in barcode.cornerPoints! {
+                            var value = [Int]()
+                            value.append(Int(Float(cp.cgPointValue.x) / Float(UIScreen.main.scale)))
+                            value.append(Int(Float(cp.cgPointValue.y) / Float(UIScreen.main.scale)))
+                            cornerPoints.append(value)
+                        }
+                        jsObject["cornerPoints"] = cornerPoints
+                        
                         if (self.savedCall != nil) {
+                            // print("------------------------", cornerPoints[0])
                             self.savedCall!.resolve(jsObject)
                         }
                         

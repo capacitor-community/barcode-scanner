@@ -172,16 +172,11 @@ export interface ScanResult {
   contentType: string;
 
   /**
-   * Position of the scanned barcode
+   * Corner points of the barcode in the image, array of x and y coordinates in pixels
    *
    * @since 4.0.0
    */
-  position: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  cornerPoints: [[number, number], [number, number], [number, number], [number, number]];
 }
 
 export interface TorchStateResult {

@@ -97,7 +97,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
     }
 
-    private void setupCamera(String cameraDirection) {
+    private void setupCamera(String cameraDirection,Boolean addFpPreview) {
         // @TODO(): add support for switching cameras while scanning is running
 
         getActivity()
@@ -109,25 +109,40 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                     // Configure the camera (front/back)
                     CameraSettings settings = new CameraSettings();
                     settings.setRequestedCameraId(
-                        "front".equals(cameraDirection) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK
+                            "front".equals(cameraDirection) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK
                     );
                     settings.setContinuousFocusEnabled(true);
                     mBarcodeView.setCameraSettings(settings);
-                    
-                    FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
-                            Resources.getSystem().getDisplayMetrics().widthPixels/2, Resources.getSystem().getDisplayMetrics().heightPixels - 85
-                    );
 
-                    mBarcodeView.animate().translationY(110);
 
-                    // Set BarcodeView as sibling View of WebView
-                    ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);
+                    if (addFpPreview != null) {
+                        FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
+                                Resources.getSystem().getDisplayMetrics().widthPixels/4, Resources.getSystem().getDisplayMetrics().heightPixels - 670);
+                        mBarcodeView.animate().translationY(635);
+//                        mBarcodeView.animate().translationX(200);
+
+                        // Set BarcodeView as sibling View of WebView
+
+                        ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);
+                    } else {
+                        FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
+                                Resources.getSystem().getDisplayMetrics().widthPixels/2, Resources.getSystem().getDisplayMetrics().heightPixels - 85
+                        );
+                        mBarcodeView.animate().translationY(110);
+
+                        // Set BarcodeView as sibling View of WebView
+                        ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);
+                    }
+
+
 
                     // Bring the WebView in front of the BarcodeView
                     // This allows us to completely style the BarcodeView in HTML/CSS
-                  //  bridge.getWebView().bringToFront();
+//                    bridge.getWebView().bringToFront();
 
                     mBarcodeView.resume();
+
+
                 }
             );
 
@@ -163,11 +178,12 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         // undo previous setup
         // because it may be prepared with a different config
         dismantleCamera();
-        
         String cameraDirection = call.getBoolean("isNativeAndroidDevice") ? "front": "back";
+        Boolean addFpPreview = call.getBoolean("isAddFpScreen");
 
         // setup camera with new config
-        setupCamera(cameraDirection);
+        setupCamera(cameraDirection, addFpPreview);
+
 
         // indicate this method was run
         didRunCameraPrepare = true;
@@ -213,7 +229,6 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                                 }
                             }
                         }
-
                         if (formatList.size() > 0) {
                             defaultDecoderFactory = new DefaultDecoderFactory(formatList, null, null, Intents.Scan.MIXED_SCAN);
                         } else {
@@ -270,7 +285,8 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                 () -> {
                     bridge.getWebView().setBackgroundColor(Color.TRANSPARENT);
                     bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = 'transparent';void(0);");
-                    isBackgroundHidden = true;
+
+                    isBackgroundHidden = false;
                 }
             );
     }
@@ -281,7 +297,11 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
                 () -> {
                     bridge.getWebView().setBackgroundColor(Color.WHITE);
                     bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = '';void(0);");
-                    isBackgroundHidden = false;
+                    isBackgroundHidden = false;{
+                        bridge.getWebView().setBackgroundColor(Color.WHITE);
+                        bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = '';void(0);");
+                        isBackgroundHidden = false;
+                    }
                 }
             );
     }

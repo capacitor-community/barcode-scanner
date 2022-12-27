@@ -174,15 +174,16 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         }
     }
 
-    private void _prepare(PluginCall call) {
+   private void _prepare(PluginCall call) {
         // undo previous setup
         // because it may be prepared with a different config
         dismantleCamera();
-        
         String cameraDirection = call.getBoolean("isNativeAndroidDevice") ? "front": "back";
+        Boolean addFpPreview = call.getBoolean("isAddFpScreen");
 
         // setup camera with new config
-        setupCamera(cameraDirection);
+        setupCamera(cameraDirection, addFpPreview);
+
 
         // indicate this method was run
         didRunCameraPrepare = true;

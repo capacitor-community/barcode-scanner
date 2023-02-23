@@ -39,6 +39,8 @@ On **iOS** this library makes use of Apple's own `AVFoundation`. This means **[t
 
 On **Android** this library uses [`zxing-android-embedded`](https://github.com/journeyapps/zxing-android-embedded) which uses [`zxing`](https://github.com/zxing/zxing) under the hood. That means **[this list of barcodes](https://github.com/zxing/zxing/#supported-formats)** is supported.
 
+On **Web** this library uses [`zxing/browser`](https://github.com/zxing-js/browser). That means **[this list of barcodes](https://github.com/zxing/zxing/#supported-formats)** is supported.
+
 ### Note on supported Capacitor versions
 
 `v3.x` supports Capacitor `v4.x`

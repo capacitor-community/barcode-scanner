@@ -7,6 +7,8 @@ export default {
       name: 'capacitorExample',
       globals: {
         '@capacitor/core': 'capacitorExports',
+        '@zxing/browser': 'zxingBrowser',
+        '@zxing/library': 'zxingLibrary',
       },
       sourcemap: true,
       inlineDynamicImports: true,
@@ -18,5 +20,5 @@ export default {
       inlineDynamicImports: true,
     },
   ],
-  external: ['@capacitor/core'],
+  external: ['@capacitor/core', '@zxing/browser', '@zxing/library'],
 };

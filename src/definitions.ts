@@ -124,7 +124,7 @@ export interface StopScanOptions {
   resolveScan?: boolean;
 }
 
-export type ScanResult {
+export type ScanResult = {
   /**
    * This indicates whether or not the scan resulted in readable content.
    * When stopping the scan with `resolveScan` set to `true`, for example,

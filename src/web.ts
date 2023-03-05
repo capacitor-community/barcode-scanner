@@ -162,7 +162,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         this._controls = await reader.decodeFromVideoElement(videoElement, (result, error, controls) => {
           if (!error && result) {
             resolve({
-              hasContent: !!result.getText(),
+              hasContent: true,
               content: result.getText(),
               format: result.getBarcodeFormat().toString(),
             });

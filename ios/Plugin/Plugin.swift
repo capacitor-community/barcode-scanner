@@ -66,6 +66,7 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     var didRunCameraSetup: Bool = false
     var didRunCameraPrepare: Bool = false
     var isBackgroundHidden: Bool = false
+    var previousBackgroundColor: UIColor? = UIColor.white
 
     var savedCall: CAPPluginCall? = nil
     var scanningPaused: Bool = false
@@ -329,6 +330,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
     private func hideBackground() {
         DispatchQueue.main.async {
+            self.previousBackgroundColor = self.bridge?.webView!.backgroundColor
+
             self.bridge?.webView!.isOpaque = false
             self.bridge?.webView!.backgroundColor = UIColor.clear
             self.bridge?.webView!.scrollView.backgroundColor = UIColor.clear
@@ -345,8 +348,8 @@ public class BarcodeScanner: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
             self.bridge?.webView!.evaluateJavaScript(javascript) { (result, error) in
                 self.bridge?.webView!.isOpaque = true
-                self.bridge?.webView!.backgroundColor = UIColor.white
-                self.bridge?.webView!.scrollView.backgroundColor = UIColor.white
+                self.bridge?.webView!.backgroundColor = self.previousBackgroundColor
+                self.bridge?.webView!.scrollView.backgroundColor = self.previousBackgroundColor
             }
         }
     }

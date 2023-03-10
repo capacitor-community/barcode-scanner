@@ -413,25 +413,25 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
  
         switch UIDevice.current.orientation {
-            case .portrait:
-                print("portrait")
-                connection.videoOrientation = AVCaptureVideoOrientation.portrait
-                break
-            case .portraitUpsideDown:
-                print("portraitUpsideDown")
-                connection.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
-                break
-            case .landscapeLeft:
-                print("landscapeLeft")
-                connection.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
-                break
-            case .landscapeRight:
-                print("landscapeRight")
-                connection.videoOrientation = AVCaptureVideoOrientation.landscapeRight
-                break
-            default:
-                print("do not set this")
-                // connection.videoOrientation = AVCaptureVideoOrientation.portrait
+        case .portrait,.unknown,.faceUp:
+            // print("portrait")
+            connection.videoOrientation = AVCaptureVideoOrientation.portrait
+            break
+        case .portraitUpsideDown,.faceDown:
+            // print("portraitUpsideDown")
+            connection.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
+            break
+        case .landscapeLeft:
+            // print("landscapeLeft")
+            connection.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
+            break
+        case .landscapeRight:
+            // print("landscapeRight")
+            connection.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+            break
+        default:
+            // print("do not set this")
+            connection.videoOrientation = AVCaptureVideoOrientation.portrait            
         }
         
         if let barcodeScanner = self.barcodeScanner {
@@ -473,6 +473,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
     @objc func start(_ call: CAPPluginCall) {
         self.savedCall = call
+        call.keepAlive = true;
         scanningPaused = false
         self.scan()
     }

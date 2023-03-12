@@ -11,6 +11,7 @@ import {
   StopScanOptions,
   TorchStateResult,
   CameraDirection,
+  IScanResultWithContent,
 } from './definitions';
 
 export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
@@ -40,7 +41,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
   async startScan(_options: ScanOptions): Promise<ScanResult> {
     this._options = _options;
     this._formats = [];
-    _options.targetedFormats?.forEach((format) => {
+    _options?.targetedFormats?.forEach((format) => {
       const formatIndex = Object.keys(BarcodeFormat).indexOf(format);
       if (formatIndex >= 0) {
         this._formats.push(0);
@@ -151,7 +152,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
   private async _getFirstResultFromReader() {
     const videoElement = await this._getVideoElement();
-    return new Promise<ScanResult>(async (resolve) => {
+    return new Promise<IScanResultWithContent>(async (resolve) => {
       if (videoElement) {
         let hints;
         if (this._formats.length) {
@@ -160,9 +161,9 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         }
         const reader = new BrowserQRCodeReader(hints);
         this._controls = await reader.decodeFromVideoElement(videoElement, (result, error, controls) => {
-          if (!error && result) {
+          if (!error && result && result.getText()) {
             resolve({
-              hasContent: !!result.getText(),
+              hasContent: true,
               content: result.getText(),
               format: result.getBarcodeFormat().toString(),
             });

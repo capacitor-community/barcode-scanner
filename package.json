@@ -36,7 +36,7 @@
     "build": "npm run clean && tsc && rollup -c rollup.config.js",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
     "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin -destination \"platform=iOS Simulator,name=iPhone 12\" && cd ..",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",

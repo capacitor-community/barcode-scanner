@@ -305,6 +305,9 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                         @RequiresApi(api = Build.VERSION_CODES.O)
                         @Override
                         public void onSuccess(List<Barcode> barcodes) {
+                            if (scanningPaused) {
+                                return;
+                            }
                             for (Barcode barcode : barcodes) {
                                 PluginCall call = getSavedCall();
 

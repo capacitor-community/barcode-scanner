@@ -106,7 +106,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     var captureVideoPreviewLayer:AVCaptureVideoPreviewLayer?
     var metaOutput: AVCaptureMetadataOutput?
 
-    var currentCamera: Int = 0
+    var currentCamera: AVCaptureDevice?
     var frontCamera: AVCaptureDevice?
     var backCamera: AVCaptureDevice?
     var barcodeScanner: BarcodeScanner?
@@ -225,6 +225,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
                 throw CaptureError.frontCameraUnavailable
             }
         }
+        currentCamera = captureDevice
         let captureDeviceInput: AVCaptureDeviceInput
         do {
             captureDeviceInput = try AVCaptureDeviceInput(device: captureDevice)
@@ -556,7 +557,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
       @objc func enableTorch(_ call: CAPPluginCall) {
-        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard let device = currentCamera else { return }
         guard device.hasTorch else { return }
         guard device.isTorchAvailable else { return }
 
@@ -578,7 +579,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
     @objc func disableTorch(_ call: CAPPluginCall) {
-        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard let device = currentCamera else { return }
         guard device.hasTorch else { return }
         guard device.isTorchAvailable else { return }
 
@@ -595,7 +596,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
     @objc func toggleTorch(_ call: CAPPluginCall) {
-        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard let device = currentCamera else { return }
         guard device.hasTorch else { return }
         guard device.isTorchAvailable else { return }
 
@@ -607,7 +608,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
 
     @objc func getTorchState(_ call: CAPPluginCall) {
-        guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+        guard let device = currentCamera else { return }
 
         var result = PluginCallResultData()
 

@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WebPlugin } from '@capacitor/core';
 
-import type { BarcodeScannerPlugin, PermissionStates, ScanOptions, ScanResult, TorchStateResult } from './definitions';
+import type {
+  BarcodeScannerPlugin,
+  PermissionStates,
+  ScanOptions,
+  ScanResult,
+  TorchStateResult,
+  ZoomOptions,
+  ZoomStateResult,
+} from './definitions';
 
 export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
   async start(_options: ScanOptions, _callback: (result: ScanResult, err?: any) => void): Promise<string> {
@@ -45,6 +53,14 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
   }
 
   async vibrate(): Promise<void> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  async getZoomState(): Promise<ZoomStateResult> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  async setZoom(_zoomOptions: ZoomOptions): Promise<ZoomStateResult> {
     throw this.unimplemented('Not implemented on web.');
   }
 }

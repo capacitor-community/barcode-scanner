@@ -1,4 +1,3 @@
-
 import type { PermissionState } from '@capacitor/core';
 
 export type CameraPermissionState = PermissionState | 'limited';
@@ -14,7 +13,6 @@ export interface PermissionStates {
 export interface CameraPluginPermissions {
   permissions: CameraPermissionType[];
 }
-
 
 export interface BarcodeScannerPlugin {
   // TODO: I am not sure if this will make sense anymore in the ML Kit version
@@ -106,6 +104,21 @@ export interface BarcodeScannerPlugin {
    * @since 4.0.0
    */
   vibrate(): Promise<void>;
+
+  /**
+   * Get current zoom, min and max zoom,
+   * and if available the factors that trigger switching to another camera
+   *
+   * @since 4.0.0
+   */
+  getZoomState(): Promise<ZoomStateResult>;
+
+  /**
+   * Set the zoom
+   *
+   * @since 4.0.0
+   */
+  setZoom(zoomOptions: ZoomOptions): Promise<ZoomStateResult>;
 }
 
 export type CallbackID = string;
@@ -147,6 +160,8 @@ export interface ScanOptions {
    * @since 4.0.0
    */
   cameraDirection?: CameraDirection;
+
+  zoom?: number;
 }
 
 export interface ScanResult {
@@ -186,4 +201,19 @@ export interface TorchStateResult {
    * @since 3.0.0
    */
   isEnabled: boolean;
+}
+
+export interface ZoomStateResult {
+  /**
+   * Current zoom
+   */
+  zoom: number;
+
+  minimum: number;
+  maximum: number;
+  switchOver?: number[];
+}
+
+export interface ZoomOptions {
+  zoom: number;
 }

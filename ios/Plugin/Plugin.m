@@ -14,4 +14,6 @@ CAP_PLUGIN(CapacitorCommunityBarcodeScanner, "CapacitorCommunityBarcodeScanner",
     CAP_PLUGIN_METHOD(toggleTorch, CAPPluginReturnPromise);
     CAP_PLUGIN_METHOD(getTorchState, CAPPluginReturnPromise);
     CAP_PLUGIN_METHOD(vibrate, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(getZoomState, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(setZoom, CAPPluginReturnPromise);
 )

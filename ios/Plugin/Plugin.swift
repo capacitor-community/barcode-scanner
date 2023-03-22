@@ -154,7 +154,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     }
     
 
-    private func setupCamera(cameraDirection: String? = "back") -> Bool {
+    private func setupCamera(cameraDirection: String? = "back", zoom: Float?) -> Bool {
         do {
             var cameraDir = cameraDirection
             cameraView.backgroundColor = UIColor.clear
@@ -197,6 +197,11 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             captureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
             cameraView.addPreviewLayer(captureVideoPreviewLayer)
             self.didRunCameraSetup = true
+            if let cam = currentCamera, let _zoom = zoom {
+                try cam.lockForConfiguration()
+                cam.videoZoomFactor = CGFloat(_zoom) * 2;
+                cam.unlockForConfiguration()
+            }
             return true
         } catch CaptureError.backCameraUnavailable {
             //
@@ -267,7 +272,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
         DispatchQueue.main.async {
             // setup camera with new config
-            if (self.setupCamera(cameraDirection: call?.getString("cameraDirection") ?? "back")) {
+            if self.setupCamera(cameraDirection: call?.getString("cameraDirection") ?? "back", zoom: call?.getFloat("zoom")) {
                 // indicate this method was run
                 self.didRunCameraPrepare = true
 
@@ -670,4 +675,33 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
            }
        }
 
+    @objc public func getZoomState(_ call: CAPPluginCall) {
+        guard let device = currentCamera else { return }
+
+        var result: [String : Any] = [
+            "zoom": device.videoZoomFactor / 2,
+            "minimum": device.minAvailableVideoZoomFactor / 2,
+            "maximum": device.maxAvailableVideoZoomFactor / 2,
+        ]
+        if (device.virtualDeviceSwitchOverVideoZoomFactors.count > 0) {
+            result["switchOver"] = device.virtualDeviceSwitchOverVideoZoomFactors.map { CGFloat(truncating: $0) / 2 }
+        }
+        
+        call.resolve(result)
+    }
+    
+    @objc public func setZoom(_ call: CAPPluginCall) {
+        guard let device = currentCamera else { return }
+        
+        let zoom = CGFloat(call.getFloat("zoom", 1)) * 2
+        do {
+            try device.lockForConfiguration()
+            device.ramp(toVideoZoomFactor: zoom, withRate: 4.0)
+            device.unlockForConfiguration()
+        } catch {
+            print(error)
+        }
+        
+        return getZoomState(call)
+    }
 }

@@ -144,7 +144,7 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                     () -> {
                         try {
                             mCameraProvider = cameraProviderFuture.get();
-                            bindPreview(mCameraProvider);
+                            bindPreview(mCameraProvider, cameraDirection.equals("front") ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK);
                         } catch (InterruptedException | ExecutionException e) {
                             // No errors need to be handled for this Future.
                             // This should never be reached.
@@ -155,12 +155,12 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
             });
     }
 
-    void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
+    void bindPreview(@NonNull ProcessCameraProvider cameraProvider, int cameraDirection) {
         getActivity()
             .runOnUiThread(() -> {
                 Preview preview = new Preview.Builder().build();
 
-                CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
+                CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(cameraDirection).build();
 
                 preview.setSurfaceProvider(mPreviewView.getSurfaceProvider());
 

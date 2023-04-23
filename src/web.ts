@@ -30,11 +30,15 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
   async hideBackground(): Promise<void> {
     this._backgroundColor = document.documentElement.style.backgroundColor;
     document.documentElement.style.backgroundColor = 'transparent';
+    document.documentElement.style.visibility = 'hidden';
+    document.documentElement.style.pointerEvents = 'none';
     return;
   }
 
   async showBackground(): Promise<void> {
     document.documentElement.style.backgroundColor = this._backgroundColor || '';
+    document.documentElement.style.visibility = 'visible
+    document.documentElement.style.pointerEvents = 'initial'
     return;
   }
 

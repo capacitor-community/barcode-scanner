@@ -1,6 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.getcapacitor.community.barcodescanner"
     android:hardwareAccelerated="true">
 
     <!-- Paste the following line into the AndroidManifest.xml of your project -->

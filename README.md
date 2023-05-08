@@ -40,7 +40,7 @@ This libaray makes use of ML-Kit. This means **[this list of barcodes](https://d
 
 ### Note on supported Capacitor versions
 
-`v5.x` supports Capacitor `v5.x` (not based on ML-Kit)
+`v5.x` supports Capacitor `v5.x`
 
 `v4.x` supports Capacitor `v4.x`  (not based on ML-Kit)
 

@@ -43,6 +43,8 @@ On **Web** this library uses [`zxing/browser`](https://github.com/zxing-js/brows
 
 ### Note on supported Capacitor versions
 
+`v4.x` supports Capacitor `v5.x`
+
 `v3.x` supports Capacitor `v4.x`
 
 `v2.x` supports Capacitor `v3.x`
@@ -113,7 +115,7 @@ Within your `AndroidManifest.xml` file, change the following:
 
 ## Usage
 
-The complete API reference can be found [here](./API_REFERENCE.md).
+The complete API reference can be found [here](./src/definitions.ts).
 
 Scanning a (QR) barcode can be as simple as:
 

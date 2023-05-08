@@ -1,6 +1,6 @@
 {
   "name": "@capacitor-community/barcode-scanner",
-  "version": "3.0.1",
+  "version": "5.0.0-beta.0",
   "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -33,7 +33,7 @@
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "swiftlint": "node-swiftlint",
-    "build": "npm run clean && tsc && rollup -c rollup.config.js",
+    "build": "npm run clean && tsc && rollup -c rollup.config.js --bundleConfigAsCjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "prepare": "npm run build",
@@ -45,25 +45,25 @@
     "verify:web": "npm run build"
   },
   "devDependencies": {
-    "@capacitor/android": "^4.5.0",
-    "@capacitor/core": "^4.5.0",
-    "@capacitor/docgen": "0.2.0",
-    "@capacitor/ios": "^4.5.0",
+    "@capacitor/android": "^5.0.1",
+    "@capacitor/core": "^5.0.1",
+    "@capacitor/docgen": "0.2.1",
+    "@capacitor/ios": "^5.0.1",
     "@ionic/eslint-config": "^0.3.0",
-    "@ionic/prettier-config": "^2.0.0",
+    "@ionic/prettier-config": "^3.0.0",
     "@ionic/swiftlint-config": "^1.1.2",
-    "eslint": "^8.28.0",
-    "husky": "^4.3.0",
-    "prettier": "~2.8.0",
-    "prettier-plugin-java": "~1.6.2",
+    "eslint": "^8.40.0",
+    "husky": "^8.0.3",
+    "prettier": "~2.8.8",
+    "prettier-plugin-java": "~2.1.0",
     "pretty-quick": "^3.1.3",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.77.2",
-    "swiftlint": "^1.0.1",
-    "typescript": "~4.9.3"
+    "rimraf": "^5.0.0",
+    "rollup": "^3.21.5",
+    "swiftlint": "^1.0.2",
+    "typescript": "~5.0.4"
   },
   "peerDependencies": {
-    "@capacitor/core": "^4.5.0"
+    "@capacitor/core": "^5.0.0"
   },
   "capacitor": {
     "ios": {

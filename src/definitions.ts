@@ -15,13 +15,6 @@ export interface CameraPluginPermissions {
 }
 
 export interface BarcodeScannerPlugin {
-  // TODO: I am not sure if this will make sense anymore in the ML Kit version
-  // prepare(options?: ScanOptions): Promise<void>;
-
-  // TODO: should be handled internally by the plugin and not be exposed to the user
-  // hideBackground(): Promise<void>;
-  // showBackground(): Promise<void>;
-
   // related to scanning
   /**
    * Start scanning for barcodes
@@ -66,7 +59,7 @@ export interface BarcodeScannerPlugin {
    */
   requestPermissions(permissions?: CameraPluginPermissions): Promise<PermissionStates>;
 
-  // TODO: is this required for anything?
+  // TODO: readd this
   // openAppSettings(): Promise<void>;
 
   // related to torch

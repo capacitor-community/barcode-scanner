@@ -80,8 +80,6 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
     private boolean scanningPaused = false;
 
     private static final String MLKIT_TAG = "MLKIT";
-
-    private ArrayList<String> scannedResult = new ArrayList<String>();
     private Camera mCamera = null;
     Vibrator mVibrator;
 
@@ -144,7 +142,10 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                     () -> {
                         try {
                             mCameraProvider = cameraProviderFuture.get();
-                            bindPreview(mCameraProvider, cameraDirection.equals("front") ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK);
+                            bindPreview(
+                                mCameraProvider,
+                                cameraDirection.equals("front") ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK
+                            );
                         } catch (InterruptedException | ExecutionException e) {
                             // No errors need to be handled for this Future.
                             // This should never be reached.
@@ -211,7 +212,6 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
     }
 
     private void destroy() {
-        scannedResult.clear();
         showBackground();
         dismantleCamera();
         this.setTorch(false);
@@ -322,25 +322,21 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
                                 //                                                    Log.e(MLKIT_TAG,"corners : " + corners.toString());
                                 Log.e(MLKIT_TAG, "bounds : " + bounds.flattenToString());
 
-                                if (!scannedResult.contains(rawValue)) {
-                                    Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
+                                Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
 
-                                    scannedResult.add(rawValue);
+                                JSObject jsObject = new JSObject();
+                                int[] boundArr = { bounds.top, bounds.bottom, bounds.right, bounds.left };
+                                Log.e(MLKIT_TAG, "onSuccess: boundArr");
+                                jsObject.put("hasContent", true);
+                                jsObject.put("content", rawValue);
+                                jsObject.put("format", null);
+                                //                                                        jsObject.put("corners",corners);
+                                jsObject.put("bounds", s);
 
-                                    JSObject jsObject = new JSObject();
-                                    int[] boundArr = { bounds.top, bounds.bottom, bounds.right, bounds.left };
-                                    Log.e(MLKIT_TAG, "onSuccess: boundArr");
-                                    jsObject.put("hasContent", true);
-                                    jsObject.put("content", rawValue);
-                                    jsObject.put("format", null);
-                                    //                                                        jsObject.put("corners",corners);
-                                    jsObject.put("bounds", s);
-
-                                    if (call != null && !call.isKeptAlive()) {
-                                        destroy();
-                                    }
-                                    call.resolve(jsObject);
+                                if (call != null && !call.isKeptAlive()) {
+                                    destroy();
                                 }
+                                call.resolve(jsObject);
                             }
                         }
                     }
@@ -416,6 +412,10 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
 
     @PluginMethod
     public void stop(PluginCall call) {
+        if (mScanner != null) {
+            mScanner.close();
+            mScanner = null;
+        }
         if (call.hasOption("resolveScan") && getSavedCall() != null) {
             Boolean resolveScan = call.getBoolean("resolveScan", false);
             if (resolveScan != null && resolveScan) {

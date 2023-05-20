@@ -310,7 +310,9 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
                 } 
             }
         } else {
-            self.didRunCameraPrepare = false
+            // JanM: this caused a crash when calling start on an already started camera
+            // also doesn't seem to make sense to force prepare to run twice?
+            // self.didRunCameraPrepare = false
 
             self.shouldRunScan = false
 

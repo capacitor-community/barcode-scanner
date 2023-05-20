@@ -119,6 +119,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
     var savedCall: CAPPluginCall? = nil
     var scanningPaused: Bool = false
+    var previousBackgroundColor: UIColor? = UIColor.white
     
 
     let serialBackgroundQueue = DispatchQueue(label: "capacitorBarcodeScannerQueue")
@@ -396,11 +397,12 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
     private func hideBackground() {
         DispatchQueue.main.async {
+            self.previousBackgroundColor = self.bridge?.webView!.backgroundColor
             self.bridge?.webView!.isOpaque = false
             self.bridge?.webView!.backgroundColor = UIColor.clear
             self.bridge?.webView!.scrollView.backgroundColor = UIColor.clear
 
-            let javascript = "document.documentElement.style.backgroundColor = 'transparent'"
+            let javascript = "document.documentElement.style.backgroundColor = 'transparent';"
 
             self.bridge?.webView!.evaluateJavaScript(javascript)
         }
@@ -408,12 +410,12 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
 
     private func showBackground() {
         DispatchQueue.main.async {
-            let javascript = "document.documentElement.style.backgroundColor = ''"
+            let javascript = "document.documentElement.style.backgroundColor = '';"
 
             self.bridge?.webView!.evaluateJavaScript(javascript) { (result, error) in
                 self.bridge?.webView!.isOpaque = true
-                self.bridge?.webView!.backgroundColor = UIColor.white
-                self.bridge?.webView!.scrollView.backgroundColor = UIColor.white
+                self.bridge?.webView!.backgroundColor = self.previousBackgroundColor
+                self.bridge?.webView!.scrollView.backgroundColor = self.previousBackgroundColor
             }
         }
     }

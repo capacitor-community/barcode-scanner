@@ -172,7 +172,11 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
 
                 imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(getContext()), this);
 
-                mCamera = cameraProvider.bindToLifecycle((LifecycleOwner) getContext(), cameraSelector, preview, imageAnalysis);
+                try {
+                    mCamera = cameraProvider.bindToLifecycle((LifecycleOwner) getContext(), cameraSelector, preview, imageAnalysis);
+                } catch (Exception ex) {
+                    Log.d("scanner", "Error getting camera: " + ex.getMessage());
+                }
             });
     }
 

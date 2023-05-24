@@ -162,7 +162,9 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
             
             // load cameras in a given order to make sure triple is used on devices that are supported
-            let deviceDescoverySession = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInTripleCamera, AVCaptureDevice.DeviceType.builtInDualCamera, AVCaptureDevice.DeviceType.builtInWideAngleCamera],
+            // JanMisker: sorry no; the triple camera is not really useful,
+            // We should instead enable camera switching, exposing all cameras, and/or allow zooming
+            let deviceDescoverySession = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInDualCamera, AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInTripleCamera],
                                                                             mediaType: AVMediaType.video,
                                                                             position: AVCaptureDevice.Position.unspecified)
         
@@ -200,7 +202,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
             self.didRunCameraSetup = true
             if let cam = currentCamera, let _zoom = zoom {
                 try cam.lockForConfiguration()
-                cam.videoZoomFactor = CGFloat(_zoom) * 2;
+                cam.videoZoomFactor = CGFloat(_zoom);
                 cam.unlockForConfiguration()
             }
             return true
@@ -683,12 +685,12 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
         guard let device = currentCamera else { return }
 
         var result: [String : Any] = [
-            "zoom": device.videoZoomFactor / 2,
-            "minimum": device.minAvailableVideoZoomFactor / 2,
-            "maximum": device.maxAvailableVideoZoomFactor / 2,
+            "zoom": device.videoZoomFactor,
+            "minimum": device.minAvailableVideoZoomFactor,
+            "maximum": device.maxAvailableVideoZoomFactor,
         ]
         if (device.virtualDeviceSwitchOverVideoZoomFactors.count > 0) {
-            result["switchOver"] = device.virtualDeviceSwitchOverVideoZoomFactors.map { CGFloat(truncating: $0) / 2 }
+            result["switchOver"] = device.virtualDeviceSwitchOverVideoZoomFactors.map { CGFloat(truncating: $0)  }
         }
         
         call.resolve(result)
@@ -697,7 +699,7 @@ public class CapacitorCommunityBarcodeScanner: CAPPlugin, AVCaptureVideoDataOutp
     @objc public func setZoom(_ call: CAPPluginCall) {
         guard let device = currentCamera else { return }
         
-        let zoom = CGFloat(call.getFloat("zoom", 1)) * 2
+        let zoom = CGFloat(call.getFloat("zoom", 1))
         do {
             try device.lockForConfiguration()
             device.ramp(toVideoZoomFactor: zoom, withRate: 4.0)

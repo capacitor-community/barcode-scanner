@@ -21,6 +21,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
   private _video: HTMLVideoElement | null = null;
   private _options: ScanOptions | null = null;
   private _backgroundColor: string | null = null;
+  private _resolveScanFn: any = null;
 
   async prepare(): Promise<void> {
     await this._getVideoElement();
@@ -78,6 +79,10 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
       this._controls.stop();
       this._controls = null;
     }
+    if (_options?.resolveScan && this._resolveScanFn) {
+      this._resolveScanFn();
+    }
+    this._resolveScanFn = null;
   }
 
   async checkPermission(_options: CheckPermissionOptions): Promise<CheckPermissionResult> {
@@ -170,11 +175,19 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
             controls.stop();
             this._controls = null;
             this._stop();
+            this._resolveScanFn = null;
           }
           if (error && error.message) {
             console.error(error.message);
           }
         });
+        this._resolveScanFn = () => {
+          resolve({
+            hasContent: false,
+            content: '',
+            format: ''
+          });
+        }
       }
     });
   }

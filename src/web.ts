@@ -186,7 +186,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
             hasContent: false,
             content: '',
             format: ''
-          })
+          });
         }
       }
     });

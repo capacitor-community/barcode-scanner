@@ -15,12 +15,15 @@ import {
 } from './definitions';
 
 export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
+  private static _FORWARD = { facingMode: 'user' };
+  private static _BACK = { facingMode: 'environment' };
   private _formats: number[] = [];
   private _controls: IScannerControls | null = null;
   private _torchState = false;
   private _video: HTMLVideoElement | null = null;
   private _options: ScanOptions | null = null;
   private _backgroundColor: string | null = null;
+  private _facingMode: MediaTrackConstraints = BarcodeScannerWeb._BACK;
 
   async prepare(): Promise<void> {
     await this._getVideoElement();
@@ -49,6 +52,9 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         console.error(format, 'is not supported on web');
       }
     });
+    if (!!_options?.cameraDirection) {
+      this._facingMode = _options.cameraDirection === CameraDirection.BACK ? BarcodeScannerWeb._BACK : BarcodeScannerWeb._FORWARD;
+    }
     const video = await this._getVideoElement();
     if (video) {
       return await this._getFirstResultFromReader();
@@ -232,7 +238,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           const constraints: MediaStreamConstraints = {
-            video: {},
+            video: this._facingMode,
           };
 
           navigator.mediaDevices.getUserMedia(constraints).then(

@@ -3,19 +3,34 @@ package com.getcapacitor.community.barcodescanner;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.graphics.Color;
-import android.hardware.Camera;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.util.Size;
 import androidx.activity.result.ActivityResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleOwner;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -26,64 +41,84 @@ import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.client.android.Intents;
-import com.journeyapps.barcodescanner.BarcodeCallback;
-import com.journeyapps.barcodescanner.BarcodeResult;
-import com.journeyapps.barcodescanner.BarcodeView;
-import com.journeyapps.barcodescanner.DefaultDecoderFactory;
-import com.journeyapps.barcodescanner.camera.CameraSettings;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.common.InputImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.json.JSONException;
 
-@CapacitorPlugin(permissions = { @Permission(strings = { Manifest.permission.CAMERA }, alias = BarcodeScanner.PERMISSION_ALIAS_CAMERA) })
-public class BarcodeScanner extends Plugin implements BarcodeCallback {
+@CapacitorPlugin(
+    permissions = {
+        @Permission(strings = { Manifest.permission.CAMERA }, alias = CapacitorCommunityBarcodeScanner.PERMISSION_ALIAS_CAMERA)
+    }
+)
+public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAnalysis.Analyzer {
 
     public static final String PERMISSION_ALIAS_CAMERA = "camera";
 
-    private BarcodeView mBarcodeView;
+    private PreviewView mPreviewView;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    ProcessCameraProvider mCameraProvider;
+    private GraphicOverlay mGraphicOverlay;
+    private Canvas mCanvas;
 
-    // private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-
-    private boolean isScanning = false;
     private boolean shouldRunScan = false;
-    private boolean didRunCameraSetup = false;
     private boolean didRunCameraPrepare = false;
-    private boolean isBackgroundHidden = false;
     private boolean isTorchOn = false;
+    private boolean isBackgroundHidden = false;
     private boolean scanningPaused = false;
-    private String lastScanResult = null;
+    private float zoomLevel = 1;
+
+    private static final String MLKIT_TAG = "MLKIT";
+
+    private ArrayList<String> scannedResult = new ArrayList<String>();
+    private Camera mCamera = null;
+    Vibrator mVibrator;
+
+    // initilize with Barcode.FORMAT_QR_CODE
+    // this will be overwritten and called with last options coming by supportedFormat()
+    private BarcodeScannerOptions mOptions;
+
+    // can't use BarcodeScanner as a object name since it overlap with BarcodeScanner Class name
+    com.google.mlkit.vision.barcode.BarcodeScanner mScanner;
 
     // declare a map constant for allowed barcode formats
-    private static final Map<String, BarcodeFormat> supportedFormats = supportedFormats();
+    private static final Map<String, Integer> supportedFormats = supportedFormats();
 
-    private static Map<String, BarcodeFormat> supportedFormats() {
-        Map<String, BarcodeFormat> map = new HashMap<>();
+    private static Map<String, Integer> supportedFormats() {
+        Map<String, Integer> map = new HashMap<>();
         // 1D Product
-        map.put("UPC_A", BarcodeFormat.UPC_A);
-        map.put("UPC_E", BarcodeFormat.UPC_E);
-        map.put("UPC_EAN_EXTENSION", BarcodeFormat.UPC_EAN_EXTENSION);
-        map.put("EAN_8", BarcodeFormat.EAN_8);
-        map.put("EAN_13", BarcodeFormat.EAN_13);
+        map.put("UPC_A", Barcode.FORMAT_UPC_A);
+        map.put("UPC_E", Barcode.FORMAT_UPC_E);
+        //        map.put("UPC_EAN_EXTENSION", Barcode.FORMAT_UPC_EAN_EXTENSION); // not supported by MLKit
+        map.put("EAN_8", Barcode.FORMAT_EAN_8);
+        map.put("EAN_13", Barcode.FORMAT_EAN_13);
         // 1D Industrial
-        map.put("CODE_39", BarcodeFormat.CODE_39);
-        map.put("CODE_93", BarcodeFormat.CODE_93);
-        map.put("CODE_128", BarcodeFormat.CODE_128);
-        map.put("CODABAR", BarcodeFormat.CODABAR);
-        map.put("ITF", BarcodeFormat.ITF);
+        map.put("CODE_39", Barcode.FORMAT_CODE_39);
+        map.put("CODE_93", Barcode.FORMAT_CODE_93);
+        map.put("CODE_128", Barcode.FORMAT_CODE_128);
+        map.put("CODABAR", Barcode.FORMAT_CODABAR);
+        map.put("ITF", Barcode.FORMAT_ITF);
         // 2D
-        map.put("AZTEC", BarcodeFormat.AZTEC);
-        map.put("DATA_MATRIX", BarcodeFormat.DATA_MATRIX);
-        map.put("MAXICODE", BarcodeFormat.MAXICODE);
-        map.put("PDF_417", BarcodeFormat.PDF_417);
-        map.put("QR_CODE", BarcodeFormat.QR_CODE);
-        map.put("RSS_14", BarcodeFormat.RSS_14);
-        map.put("RSS_EXPANDED", BarcodeFormat.RSS_EXPANDED);
+        map.put("AZTEC", Barcode.FORMAT_AZTEC);
+        map.put("DATA_MATRIX", Barcode.FORMAT_DATA_MATRIX);
+        //        map.put("MAXICODE", Barcode.FORMAT_MAXICODE); // not supported by MLKIT
+        map.put("PDF_417", Barcode.FORMAT_PDF417);
+        map.put("QR_CODE", Barcode.FORMAT_QR_CODE);
+        //        map.put("RSS_14", Barcode.FORMAT_RSS_14); // not supported by MLKIT
+        //        map.put("RSS_EXPANDED", Barcode.FORMAT_RSS_EXPANDED); // not supported by MLKIT
+
         return Collections.unmodifiableMap(map);
     }
 
@@ -100,55 +135,58 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         // @TODO(): add support for switching cameras while scanning is running
 
         getActivity()
-            .runOnUiThread(
-                () -> {
-                    // Create BarcodeView
-                    mBarcodeView = new BarcodeView(getActivity());
+            .runOnUiThread(() -> {
+                // Create the mPreviewView
+                mPreviewView = getActivity().findViewById(R.id.preview_view);
+                mGraphicOverlay = getActivity().findViewById(R.id.graphic_overlay);
 
-                    // Configure the camera (front/back)
-                    CameraSettings settings = new CameraSettings();
-                    settings.setRequestedCameraId(
-                        "front".equals(cameraDirection) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK
-                    );
-                    settings.setContinuousFocusEnabled(true);
-                    mBarcodeView.setCameraSettings(settings);
+                cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
+                cameraProviderFuture.addListener(
+                    () -> {
+                        try {
+                            mCameraProvider = cameraProviderFuture.get();
+                            bindPreview(mCameraProvider, cameraDirection.equals("front") ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK);
+                        } catch (InterruptedException | ExecutionException e) {
+                            // No errors need to be handled for this Future.
+                            // This should never be reached.
+                        }
+                    },
+                    ContextCompat.getMainExecutor(getContext())
+                );
+            });
+    }
 
-                    FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                    );
+    void bindPreview(@NonNull ProcessCameraProvider cameraProvider, int cameraDirection) {
+        getActivity()
+            .runOnUiThread(() -> {
+                Preview preview = new Preview.Builder().build();
 
-                    // Set BarcodeView as sibling View of WebView
-                    ((ViewGroup) bridge.getWebView().getParent()).addView(mBarcodeView, cameraPreviewParams);
+                CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(cameraDirection).build();
 
-                    // Bring the WebView in front of the BarcodeView
-                    // This allows us to completely style the BarcodeView in HTML/CSS
-                    bridge.getWebView().bringToFront();
+                preview.setSurfaceProvider(mPreviewView.getSurfaceProvider());
 
-                    mBarcodeView.resume();
-                }
-            );
+                ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .setTargetResolution(new Size(1280, 720))
+                    .build();
 
-        didRunCameraSetup = true;
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(getContext()), this);
+
+                mCamera = cameraProvider.bindToLifecycle((LifecycleOwner) getContext(), cameraSelector, preview, imageAnalysis);
+            });
     }
 
     private void dismantleCamera() {
         // opposite of setupCamera
-
         getActivity()
-            .runOnUiThread(
-                () -> {
-                    if (mBarcodeView != null) {
-                        mBarcodeView.pause();
-                        mBarcodeView.stopDecoding();
-                        ((ViewGroup) bridge.getWebView().getParent()).removeView(mBarcodeView);
-                        mBarcodeView = null;
-                    }
+            .runOnUiThread(() -> {
+                if (mCameraProvider != null) {
+                    mCameraProvider.unbindAll();
+                    mCamera = null;
+                    mPreviewView = null;
                 }
-            );
+            });
 
-        isScanning = false;
-        didRunCameraSetup = false;
         didRunCameraPrepare = false;
 
         // If a call is saved and a scan will not run, free the saved call
@@ -174,6 +212,7 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
     }
 
     private void destroy() {
+        scannedResult.clear();
         showBackground();
         dismantleCamera();
         this.setTorch(false);
@@ -181,45 +220,57 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
 
     private void configureCamera() {
         getActivity()
-            .runOnUiThread(
-                () -> {
-                    PluginCall call = getSavedCall();
+            .runOnUiThread(() -> {
+                PluginCall call = getSavedCall();
+                mVibrator = (Vibrator) getActivity().getSystemService(getContext().VIBRATOR_SERVICE);
 
-                    if (call == null || mBarcodeView == null) {
-                        Log.d("scanner", "Something went wrong with configuring the BarcodeScanner.");
-                        return;
-                    }
 
-                    DefaultDecoderFactory defaultDecoderFactory = new DefaultDecoderFactory(null, null, null, Intents.Scan.MIXED_SCAN);
 
-                    if (call.hasOption("targetedFormats")) {
-                        JSArray targetedFormats = call.getArray("targetedFormats");
-                        ArrayList<BarcodeFormat> formatList = new ArrayList<>();
+                if (call == null || mPreviewView == null) {
+                    Log.d("scanner", "Something went wrong with configuring the BarcodeScanner.");
+                    return;
+                }
 
-                        if (targetedFormats != null && targetedFormats.length() > 0) {
-                            for (int i = 0; i < targetedFormats.length(); i++) {
-                                try {
-                                    String targetedFormat = targetedFormats.getString(i);
-                                    BarcodeFormat targetedBarcodeFormat = supportedFormats.get(targetedFormat);
-                                    if (targetedBarcodeFormat != null) {
-                                        formatList.add(targetedBarcodeFormat);
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                if (call.hasOption("targetedFormats")) {
+                    JSArray targetedFormats = call.getArray("targetedFormats");
+
+                    ArrayList<Integer> formatList = new ArrayList<>();
+
+                    if (targetedFormats != null && targetedFormats.length() > 0) {
+                        for (int i = 0; i < targetedFormats.length(); i++) {
+                            try {
+                                String targetedFormat = targetedFormats.getString(i);
+                                int targetedBarcodeFormat = supportedFormats.get(targetedFormat);
+                                if (targetedBarcodeFormat != 0) {
+                                    formatList.add(targetedBarcodeFormat);
                                 }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
                         }
-
-                        if (formatList.size() > 0) {
-                            defaultDecoderFactory = new DefaultDecoderFactory(formatList, null, null, Intents.Scan.MIXED_SCAN);
-                        } else {
-                            Log.d("scanner", "The property targetedFormats was not set correctly.");
-                        }
                     }
 
-                    mBarcodeView.setDecoderFactory(defaultDecoderFactory);
+                    if (formatList.size() > 0) {
+                        int[] formats = convertIntegers(formatList);
+                        mOptions = new BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE, formats).build();
+                        mScanner = BarcodeScanning.getClient(mOptions);
+                    } else {
+                        Log.d("scanner", "The property targetedFormats was not set correctly.");
+                    }
                 }
-            );
+                if (mScanner == null) {
+                    mOptions = new BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS).build();
+                    mScanner = BarcodeScanning.getClient(mOptions);
+                }
+            });
+    }
+
+    public static int[] convertIntegers(List<Integer> integers) {
+        int[] ret = new int[integers.size()];
+        for (int i = 0; i < ret.length; i++) {
+            if (integers.get(i).intValue() != Barcode.FORMAT_QR_CODE) ret[i] = integers.get(i).intValue();
+        }
+        return ret;
     }
 
     private void scan() {
@@ -238,100 +289,105 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
             shouldRunScan = false;
 
             configureCamera();
+            hideBackground();
+        }
+    }
 
-            final BarcodeCallback b = this;
-            getActivity()
-                .runOnUiThread(
-                    () -> {
-                        if (mBarcodeView != null) {
-                            PluginCall call = getSavedCall();
-                            if (call != null && call.isKeptAlive()) {
-                                mBarcodeView.decodeContinuous(b);
-                            } else {
-                                mBarcodeView.decodeSingle(b);
+    @Override
+    public void analyze(@NonNull ImageProxy image) {
+        @SuppressLint("UnsafeOptInUsageError")
+        Image mediaImage = image.getImage();
+
+        if (mediaImage != null) {
+            InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
+
+            Task<List<Barcode>> result = mScanner
+                .process(inputImage)
+                .addOnSuccessListener(
+                    new OnSuccessListener<List<Barcode>>() {
+                        @RequiresApi(api = Build.VERSION_CODES.O)
+                        @Override
+                        public void onSuccess(List<Barcode> barcodes) {
+                            if (scanningPaused) {
+                                return;
+                            }
+                            for (Barcode barcode : barcodes) {
+                                PluginCall call = getSavedCall();
+
+                                Rect bounds = barcode.getBoundingBox();
+                                Point[] corners = barcode.getCornerPoints();
+                                String rawValue = barcode.getRawValue();
+
+                                // add vibration logic here
+
+                                String s = bounds.flattenToString();
+                                Log.e(MLKIT_TAG, "content : " + rawValue);
+                                //                                                    Log.e(MLKIT_TAG,"corners : " + corners.toString());
+                                Log.e(MLKIT_TAG, "bounds : " + bounds.flattenToString());
+
+                                if (!scannedResult.contains(rawValue)) {
+                                    Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
+
+                                    scannedResult.add(rawValue);
+
+                                    JSObject jsObject = new JSObject();
+                                    int[] boundArr = { bounds.top, bounds.bottom, bounds.right, bounds.left };
+                                    Log.e(MLKIT_TAG, "onSuccess: boundArr");
+                                    jsObject.put("hasContent", true);
+                                    jsObject.put("content", rawValue);
+                                    jsObject.put("format", null);
+                                    //                                                        jsObject.put("corners",corners);
+                                    jsObject.put("bounds", s);
+
+                                    if (call != null && !call.isKeptAlive()) {
+                                        destroy();
+                                    }
+                                    call.resolve(jsObject);
+                                }
                             }
                         }
                     }
+                )
+                .addOnFailureListener(
+                    new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e(MLKIT_TAG, e.toString());
+                        }
+                    }
+                )
+                .addOnCompleteListener(
+                    new OnCompleteListener<List<Barcode>>() {
+                        @Override
+                        public void onComplete(@NonNull Task<List<Barcode>> task) {
+                            image.close();
+                            mediaImage.close();
+                        }
+                    }
                 );
-
-            hideBackground();
-
-            isScanning = true;
         }
     }
 
-    private void hideBackground() {
-        getActivity()
-            .runOnUiThread(
-                () -> {
-                    bridge.getWebView().setBackgroundColor(Color.TRANSPARENT);
-                    bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = 'transparent';void(0);");
-                    isBackgroundHidden = true;
-                }
-            );
-    }
-
-    private void showBackground() {
-        getActivity()
-            .runOnUiThread(
-                () -> {
-                    bridge.getWebView().setBackgroundColor(Color.WHITE);
-                    bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = '';void(0);");
-                    isBackgroundHidden = false;
-                }
-            );
-    }
-
-    @Override
-    public void barcodeResult(BarcodeResult barcodeResult) {
-        JSObject jsObject = new JSObject();
-
-        if (barcodeResult.getText() != null) {
-            jsObject.put("hasContent", true);
-            jsObject.put("content", barcodeResult.getText());
-            jsObject.put("format", barcodeResult.getBarcodeFormat().name());
-        } else {
-            jsObject.put("hasContent", false);
-        }
-
-        PluginCall call = getSavedCall();
-
-        if (call != null) {
-            if (call.isKeptAlive()) {
-                if (!scanningPaused && barcodeResult.getText() != null && !barcodeResult.getText().equals(lastScanResult)) {
-                    lastScanResult = barcodeResult.getText();
-                    call.resolve(jsObject);
-                }
-            } else {
-                call.resolve(jsObject);
-                destroy();
-            }
-        } else {
-            destroy();
+    @PluginMethod
+    public void vibrate(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mVibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
         }
     }
-
-    @Override
-    public void handleOnPause() {
-        if (mBarcodeView != null) {
-            mBarcodeView.pause();
-        }
-    }
-
-    @Override
-    public void handleOnResume() {
-        if (mBarcodeView != null) {
-            mBarcodeView.resume();
-        }
-    }
-
-    @Override
-    public void possibleResultPoints(List<ResultPoint> resultPoints) {}
 
     @PluginMethod
     public void prepare(PluginCall call) {
         _prepare(call);
         call.resolve();
+    }
+
+    private void hideBackground() {
+        getActivity()
+            .runOnUiThread(() -> {
+                bridge.getWebView().setBackgroundColor(Color.TRANSPARENT);
+                bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = 'transparent';void(0);");
+                isBackgroundHidden = true;
+            });
     }
 
     @PluginMethod
@@ -340,58 +396,63 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         call.resolve();
     }
 
+    private void showBackground() {
+        getActivity()
+            .runOnUiThread(() -> {
+                bridge.getWebView().setBackgroundColor(Color.WHITE);
+                bridge.getWebView().loadUrl("javascript:document.documentElement.style.backgroundColor = '';void(0);");
+                isBackgroundHidden = false;
+            });
+    }
+
     @PluginMethod
     public void showBackground(PluginCall call) {
         showBackground();
         call.resolve();
     }
 
-    @PluginMethod
-    public void startScan(PluginCall call) {
-        saveCall(call);
-        scan();
-    }
+    // @PluginMethod
+    // public void startScan(PluginCall call) {
+    //     saveCall(call);
+    //     scan();
+    // }
 
     @PluginMethod
-    public void stopScan(PluginCall call) {
+    public void stop(PluginCall call) {
         if (call.hasOption("resolveScan") && getSavedCall() != null) {
             Boolean resolveScan = call.getBoolean("resolveScan", false);
             if (resolveScan != null && resolveScan) {
                 JSObject jsObject = new JSObject();
                 jsObject.put("hasContent", false);
-
                 getSavedCall().resolve(jsObject);
             }
         }
-
         destroy();
         call.resolve();
     }
 
     @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
-    public void startScanning(PluginCall call) {
+    public void start(PluginCall call) {
         call.setKeepAlive(true);
-        lastScanResult = null; // reset when scanning again
         saveCall(call);
         scanningPaused = false;
         scan();
     }
 
     @PluginMethod
-    public void pauseScanning(PluginCall call) {
+    public void pause(PluginCall call) {
         scanningPaused = true;
         call.resolve();
     }
 
     @PluginMethod
-    public void resumeScanning(PluginCall call) {
-        lastScanResult = null; // reset when scanning again
+    public void resume(PluginCall call) {
+        // lastScanResult = null; // reset when scanning again
         scanningPaused = false;
         call.resolve();
     }
 
     private static final String TAG_PERMISSION = "permission";
-
     private static final String GRANTED = "granted";
     private static final String DENIED = "denied";
     private static final String ASKED = "asked";
@@ -537,14 +598,32 @@ public class BarcodeScanner extends Plugin implements BarcodeCallback {
         if (on != isTorchOn) {
             isTorchOn = on;
             getActivity()
-                .runOnUiThread(
-                    () -> {
-                        if (mBarcodeView != null) {
-                            mBarcodeView.setTorch(on);
-                        }
+                .runOnUiThread(() -> {
+                    if (mCamera != null && mCamera.getCameraInfo().hasFlashUnit()) {
+                        mCamera.getCameraControl().enableTorch(on);
                     }
-                );
+                });
         }
+    }
+
+    private void setZoomLevel(float zoom) {
+        if (zoom != zoomLevel) {
+          float clampedZoomScale = Math.max(1.0f, Math.min(zoom, mCamera.cameraControl.getMaxZoomRatio()));
+          zoomLevel = clampedZoomScale;
+          getActivity()
+            .runOnUiThread(() -> {
+              if (mCamera != null) {
+                mCamera.cameraControl.setZoomRatio(zoomLevel);
+              }
+            });
+        }
+    }
+
+    @PluginMethod
+    public void setZoom(PluginCall call) {
+      float zoom = call.getFloat("zoom");
+      this.setZoomLevel(zoom);
+      call.resolve();
     }
 
     @PluginMethod

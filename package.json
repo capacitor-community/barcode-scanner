@@ -1,5 +1,5 @@
 {
-  "name": "@capacitor-community/barcode-scanner",
+  "name": "@tmpi/capacitor-barcode-scanner",
   "version": "3.0.3",
   "description": "A fast and efficient (QR) barcode scanner for Capacitor",
   "main": "dist/plugin.cjs.js",
@@ -17,10 +17,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/capacitor-community/barcode-scanner.git"
+    "url": "git+https://github.com/tmpi-fr/capacitor-barcode-scanner.git"
   },
   "bugs": {
-    "url": "https://github.com/capacitor-community/barcode-scanner/issues"
+    "url": "https://github.com/tmpi-fr/capacitor-barcode-scanner/issues"
   },
   "keywords": [
     "capacitor",
@@ -84,7 +84,7 @@
       "pre-commit": "npx pretty-quick --staged"
     }
   },
-  "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
+  "homepage": "https://github.com/tmpi-fr/capacitor-barcode-scanner#readme",
   "directories": {
     "example": "examples"
   },

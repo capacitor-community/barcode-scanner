@@ -112,6 +112,12 @@ export interface ScanOptions {
    * @since 2.1.0
    */
   cameraDirection?: CameraDirection;
+  /**
+   * This parameter can be used to embed the camera preview in a custom parent (web only).
+   * If specified, the preview will be appended to an element with an ID of `previewParent`.
+   * Otherwise, a new div element will be appended to the document body.
+   */
+  previewParent?: string;
 }
 
 export interface StopScanOptions {

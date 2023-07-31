@@ -83,11 +83,39 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
   }
 
   async checkPermissions(): Promise<PermissionStates> {
-    throw this.unimplemented('Not implemented on web.');
+    if (typeof navigator === 'undefined' || !navigator.permissions) {
+      throw this.unavailable('Permissions API not available in this browser');
+    }
+
+    try {
+      // https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query
+      // the specific permissions that are supported varies among browsers that implement the
+      // permissions API, so we need a try/catch in case 'camera' is invalid
+      const permission = await window.navigator.permissions.query({
+        name: 'camera' as any,
+      });
+      return {
+        camera: permission.state,
+      };
+    } catch {
+      throw this.unavailable('Camera permissions are not available in this browser');
+    }
   }
 
   async requestPermissions(): Promise<PermissionStates> {
-    throw this.unimplemented('Not implemented on web.');
+    try {
+      await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: true,
+      })
+      return {
+        camera: 'granted',
+      };
+    } catch (error) {
+      return {
+        camera: 'denied',
+      };
+    }
   }
 
   async enableTorch(): Promise<void> {
@@ -196,7 +224,6 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
           navigator.mediaDevices.getUserMedia(constraints).then(
             (stream) => {
-              //video.src = window.URL.createObjectURL(stream);
               if (this._video) {
                 this._video.srcObject = stream;
                 this._video.play();

@@ -114,16 +114,30 @@ Scanning a (QR) barcode can be as simple as:
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 export class BarcodeExample {
-  public async startScan() {
-  await BarcodeScanner.requestPermission();
-  BarcodeScanner.start({}, (result) => {
-    console.log('barcode scanned', result);
-  });
-};
+  public async onDidViewEnter() {
+    const permission = await BarcodeScanner.requestPermissions();
+    if (permission.camera === 'denied') {
+      alert('The app does not have permission to the camera. You can grant access in the system settings.');
+      return
+    }
+
+    BarcodeScanner.start({}, (result, error) => {
+      if (result) {
+        console.log('barcode scanned', result);
+      }
+      else if (error) {
+        console.log('scanning failed', error);
+      }
+    });
+  };
+
+  public onDidViewLeave() {
+    BarcodeScanner.stop()
+  }
 }
-
-
 ```
+
+This will report all scaned codes (repeatively) until you call `BarcodeScanner.stop()`.
 
 ### Opacity of the WebView
 
@@ -142,7 +156,7 @@ This part of the readme will soon be updated.
 ### Ionic CSS variables
 
 Ionic will add additional CSS variables which will prevent the scanner from showing up.
-To fix this issue add the following snippet at the end of your global css.
+To fix this issue add the following snippet to the styles:
 
 ```css
 body.scanner-active {

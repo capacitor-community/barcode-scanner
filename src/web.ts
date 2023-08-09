@@ -1,17 +1,17 @@
 import { WebPlugin } from '@capacitor/core';
-import { BarcodeFormat, BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
+import { BarcodeFormat, BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { DecodeHintType } from '@zxing/library';
 
 import {
   BarcodeScannerPlugin,
-  ScanOptions,
-  ScanResult,
+  CameraDirection,
   CheckPermissionOptions,
   CheckPermissionResult,
+  IScanResultWithContent,
+  ScanOptions,
+  ScanResult,
   StopScanOptions,
   TorchStateResult,
-  CameraDirection,
-  IScanResultWithContent,
 } from './definitions';
 
 export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
@@ -45,15 +45,16 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
     this._options = _options;
     this._formats = [];
     _options?.targetedFormats?.forEach((format) => {
-      const formatIndex = Object.keys(BarcodeFormat).indexOf(format);
-      if (formatIndex >= 0) {
-        this._formats.push(0);
+      const formatValue = BarcodeFormat[format as keyof typeof BarcodeFormat];
+      if (formatValue !== undefined) {
+        this._formats.push(formatValue);
       } else {
         console.error(format, 'is not supported on web');
       }
     });
     if (!!_options?.cameraDirection) {
-      this._facingMode = _options.cameraDirection === CameraDirection.BACK ? BarcodeScannerWeb._BACK : BarcodeScannerWeb._FORWARD;
+      this._facingMode =
+        _options.cameraDirection === CameraDirection.BACK ? BarcodeScannerWeb._BACK : BarcodeScannerWeb._FORWARD;
     }
     const video = await this._getVideoElement();
     if (video) {
@@ -160,12 +161,12 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
     const videoElement = await this._getVideoElement();
     return new Promise<IScanResultWithContent>(async (resolve) => {
       if (videoElement) {
-        let hints;
+        const hints = new Map();
+        hints.set(DecodeHintType.TRY_HARDER, true);
         if (this._formats.length) {
-          hints = new Map();
           hints.set(DecodeHintType.POSSIBLE_FORMATS, this._formats);
         }
-        const reader = new BrowserQRCodeReader(hints);
+        const reader = new BrowserMultiFormatReader(hints);
         this._controls = await reader.decodeFromVideoElement(videoElement, (result, error, controls) => {
           if (!error && result && result.getText()) {
             resolve({
@@ -212,7 +213,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         this._video = document.createElement('video');
         this._video.id = 'video';
         // Don't flip video feed if camera is rear facing
-        if (this._options?.cameraDirection !== CameraDirection.BACK) {
+        if (this._facingMode !== BarcodeScannerWeb._BACK) {
           this._video.setAttribute(
             'style',
             '-webkit-transform: scaleX(-1); transform: scaleX(-1); width:100%; height: 100%;'

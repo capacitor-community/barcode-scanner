@@ -38,6 +38,8 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
       throw this.unavailable('Missing video element');
     }
     while (true) {
+      await new Promise(requestAnimationFrame) // TODO: This will suspend when app is in background, is that what we want?
+
       try {
         const detected = await detector.detect(video);
 
@@ -63,7 +65,6 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
       }
 
       await new Promise(resolve => setTimeout(resolve, 100)); // Nobody needs to scan more often, so do not waste resources
-      await new Promise(requestAnimationFrame) // TODO: This will suspend when app is in background, is that what we want?
     }
 
     return ''; // TODO: What should this return?

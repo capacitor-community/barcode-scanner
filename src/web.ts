@@ -43,7 +43,7 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
       try {
         const detected = await detector.detect(video);
 
-        if (!this._video) break; // TODO: When scanning was stopped should it really throw last scan result?
+        if (!this._video) break;
         if (detected.length === 0) continue;
 
         for (const barcode of detected) {
@@ -104,17 +104,21 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
   async requestPermissions(): Promise<PermissionStates> {
     try {
-      await navigator.mediaDevices.getUserMedia({
+      (await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: true,
-      })
+      })).getTracks().forEach(track => track.stop());
+
       return {
         camera: 'granted',
       };
-    } catch (error) {
-      return {
-        camera: 'denied',
-      };
+    } catch (error: any) {
+      if (error.name === 'NotAllowedError') {
+        return {
+          camera: 'denied',
+        };
+      }
+      throw error
     }
   }
 

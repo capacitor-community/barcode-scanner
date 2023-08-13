@@ -84,5 +84,8 @@
   "homepage": "https://github.com/capacitor-community/barcode-scanner#readme",
   "directories": {
     "example": "examples"
+  },
+  "dependencies": {
+    "@undecaf/barcode-detector-polyfill": "^0.9.20"
   }
 }

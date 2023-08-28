@@ -117,7 +117,16 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         unknown: true,
       };
     } catch {
-      throw this.unavailable('Camera permissions are not available in this browser');
+      try {
+        await navigator.mediaDevices.getUserMedia({video: true});
+        return { granted: true };
+      } catch (err) {
+        if ( (err as DOMException).name === 'NotAllowedError') {
+          return { denied: true };
+        } else {
+          throw this.unavailable('Camera permissions are not available in this browser');
+        }
+      }
     }
   }
 

@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/maintenance/yes/2023?style=flat-square" />
+  <img src="https://img.shields.io/maintenance/no/2023?style=flat-square" />
   <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/l/@capacitor-community/barcode-scanner?style=flat-square" /></a>
 <br>
   <a href="https://www.npmjs.com/package/@capacitor-community/barcode-scanner"><img src="https://img.shields.io/npm/dw/@capacitor-community/barcode-scanner?style=flat-square" /></a>
@@ -28,7 +28,7 @@
 
 | Maintainer | GitHub                                | Active |
 | ---------- | ------------------------------------- | ------ |
-| thegnuu    | [thegnuu](https://github.com/thegnuu) | yes    |
+| thegnuu    | [thegnuu](https://github.com/thegnuu) | no     |
 | tafelnl    | [tafelnl](https://github.com/tafelnl) | no     |
 
 ## About

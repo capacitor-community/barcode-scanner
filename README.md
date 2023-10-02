@@ -118,6 +118,7 @@ Within your `AndroidManifest.xml` file, change the following:
   </application>
 
 +  <uses-permission android:name="android.permission.CAMERA" />
++  <uses-feature android:name="android.hardware.camera" android:required="false" />
 
 +  <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 </manifest>

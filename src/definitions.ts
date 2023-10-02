@@ -136,7 +136,7 @@ export interface IScanResultWithContent {
    *
    * @since 1.0.0
    */
-  hasContent: true;
+  hasContent: boolean;
 
   /**
    * This holds the content of the barcode if available.

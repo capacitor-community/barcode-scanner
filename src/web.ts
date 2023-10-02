@@ -185,6 +185,26 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
     });
   }
 
+  private _getParentElement() {
+    // If a parent ID is specified, and the element exists, use it.
+    if (this._options?.previewParent) {
+      const existingParent = document.getElementById(this._options.previewParent);
+      if (existingParent) {
+        return existingParent;
+      }
+    }
+
+    // If no existing element, create a new full-page div and attach to body.
+    const body = document.body;
+    const defaultParent = document.createElement('div');
+    defaultParent.setAttribute(
+      'style',
+      'position:absolute; top: 0; left: 0; width:100%; height: 100%; background-color: black;'
+    );
+    body.appendChild(defaultParent);
+    return defaultParent;
+  }
+
   private async _startVideo(): Promise<{}> {
     return new Promise(async (resolve, reject) => {
       await navigator.mediaDevices
@@ -200,15 +220,10 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
           reject(error);
         });
 
-      const body = document.body;
       const video = document.getElementById('video');
 
       if (!video) {
-        const parent = document.createElement('div');
-        parent.setAttribute(
-          'style',
-          'position:absolute; top: 0; left: 0; width:100%; height: 100%; background-color: black;'
-        );
+        const parent = this._getParentElement();
         this._video = document.createElement('video');
         this._video.id = 'video';
         // Don't flip video feed if camera is rear facing
@@ -234,7 +249,6 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         }
 
         parent.appendChild(this._video);
-        body.appendChild(parent);
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           const constraints: MediaStreamConstraints = {

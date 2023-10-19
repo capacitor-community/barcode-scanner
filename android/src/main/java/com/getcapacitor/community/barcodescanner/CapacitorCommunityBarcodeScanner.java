@@ -299,70 +299,72 @@ public class CapacitorCommunityBarcodeScanner extends Plugin implements ImageAna
         @SuppressLint("UnsafeOptInUsageError")
         Image mediaImage = image.getImage();
 
-        if (mediaImage != null) {
-            InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
-
-            Task<List<Barcode>> result = mScanner
-                .process(inputImage)
-                .addOnSuccessListener(
-                    new OnSuccessListener<List<Barcode>>() {
-                        @RequiresApi(api = Build.VERSION_CODES.O)
-                        @Override
-                        public void onSuccess(List<Barcode> barcodes) {
-                            if (scanningPaused) {
-                                return;
-                            }
-                            for (Barcode barcode : barcodes) {
-                                PluginCall call = getSavedCall();
-
-                                Rect bounds = barcode.getBoundingBox();
-                                Point[] corners = barcode.getCornerPoints();
-                                String rawValue = barcode.getRawValue();
-
-                                // add vibration logic here
-
-                                String s = bounds.flattenToString();
-                                Log.e(MLKIT_TAG, "content : " + rawValue);
-                                //                                                    Log.e(MLKIT_TAG,"corners : " + corners.toString());
-                                Log.e(MLKIT_TAG, "bounds : " + bounds.flattenToString());
-
-                                Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
-
-                                JSObject jsObject = new JSObject();
-                                int[] boundArr = { bounds.top, bounds.bottom, bounds.right, bounds.left };
-                                Log.e(MLKIT_TAG, "onSuccess: boundArr");
-                                jsObject.put("hasContent", true);
-                                jsObject.put("content", rawValue);
-                                jsObject.put("format", null);
-                                //                                                        jsObject.put("corners",corners);
-                                jsObject.put("bounds", s);
-
-                                if (call != null && !call.isKeptAlive()) {
-                                    destroy();
-                                }
-                                call.resolve(jsObject);
-                            }
-                        }
-                    }
-                )
-                .addOnFailureListener(
-                    new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e(MLKIT_TAG, e.toString());
-                        }
-                    }
-                )
-                .addOnCompleteListener(
-                    new OnCompleteListener<List<Barcode>>() {
-                        @Override
-                        public void onComplete(@NonNull Task<List<Barcode>> task) {
-                            image.close();
-                            mediaImage.close();
-                        }
-                    }
-                );
+        if (mediaImage == null || mScanner == null) {
+            return;
         }
+
+        InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
+
+        Task<List<Barcode>> result = mScanner
+            .process(inputImage)
+            .addOnSuccessListener(
+                new OnSuccessListener<List<Barcode>>() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onSuccess(List<Barcode> barcodes) {
+                        if (scanningPaused) {
+                            return;
+                        }
+                        for (Barcode barcode : barcodes) {
+                            PluginCall call = getSavedCall();
+
+                            Rect bounds = barcode.getBoundingBox();
+                            Point[] corners = barcode.getCornerPoints();
+                            String rawValue = barcode.getRawValue();
+
+                            // add vibration logic here
+
+                            String s = bounds.flattenToString();
+                            Log.e(MLKIT_TAG, "content : " + rawValue);
+                            //                                                    Log.e(MLKIT_TAG,"corners : " + corners.toString());
+                            Log.e(MLKIT_TAG, "bounds : " + bounds.flattenToString());
+
+                            Log.e(MLKIT_TAG, "Added Into ArrayList : " + rawValue);
+
+                            JSObject jsObject = new JSObject();
+                            int[] boundArr = { bounds.top, bounds.bottom, bounds.right, bounds.left };
+                            Log.e(MLKIT_TAG, "onSuccess: boundArr");
+                            jsObject.put("hasContent", true);
+                            jsObject.put("content", rawValue);
+                            jsObject.put("format", null);
+                            //                                                        jsObject.put("corners",corners);
+                            jsObject.put("bounds", s);
+
+                            if (call != null && !call.isKeptAlive()) {
+                                destroy();
+                            }
+                            call.resolve(jsObject);
+                        }
+                    }
+                }
+            )
+            .addOnFailureListener(
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(MLKIT_TAG, e.toString());
+                    }
+                }
+            )
+            .addOnCompleteListener(
+                new OnCompleteListener<List<Barcode>>() {
+                    @Override
+                    public void onComplete(@NonNull Task<List<Barcode>> task) {
+                        image.close();
+                        mediaImage.close();
+                    }
+                }
+            );
     }
 
     @PluginMethod

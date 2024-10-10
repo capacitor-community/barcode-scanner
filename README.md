@@ -1,9 +1,6 @@
 # DEPRECATED
 
-This package is deprecated in favor of [`@capacitor-mlkit/barcode-scanning`](https://github.com/capawesome-team/capacitor-mlkit/tree/main/packages/barcode-scanning).
-`@capacitor-mlkit/barcode-scanning` has multiple features that are missing in this project, especially a prebuilt UI. 
-Not having an out of the box solution was confusing for most users and caused a lot of issues.
-Additionally, v5 of this plugin intended to switch to `ml-kit` and this brings additional problems if you want to use multiple parts of `ml-kit` in the same application, which is solved by `@capacitor-mlkit/barcode-scanning` as well.
+This package is deprecated in favor of [`@capacitor/barcode-scanner`](https://github.com/ionic-team/capacitor-barcode-scanner).
 
 
 <p align="center"><br><img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" /></p>
